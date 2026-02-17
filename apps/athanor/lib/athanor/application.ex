@@ -12,6 +12,7 @@ defmodule Athanor.Application do
       {DNSCluster, query: Application.get_env(:athanor, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Athanor.PubSub},
       {Registry, keys: :unique, name: Athanor.Runtime.RunRegistry},
+      {Registry, keys: :unique, name: Athanor.Runtime.RunBufferRegistry},
       Athanor.Runtime.RunSupervisor
     ]
 

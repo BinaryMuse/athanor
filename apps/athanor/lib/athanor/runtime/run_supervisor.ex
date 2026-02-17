@@ -17,8 +17,23 @@ defmodule Athanor.Runtime.RunSupervisor do
   end
 
   def start_run(run, opts \\ []) do
-    spec = {RunServer, [run: run, opts: opts]}
-    DynamicSupervisor.start_child(__MODULE__, spec)
+    # Start buffer first - creates ETS tables
+    buffer_spec = {Athanor.Runtime.RunBuffer, [run: run]}
+    {:ok, _buffer_pid} = DynamicSupervisor.start_child(__MODULE__, buffer_spec)
+
+    # Then start server - experiment can now write to tables
+    server_spec = {RunServer, [run: run, opts: opts]}
+    DynamicSupervisor.start_child(__MODULE__, server_spec)
+  end
+
+  def stop_buffer(run_id) do
+    case Registry.lookup(Athanor.Runtime.RunBufferRegistry, run_id) do
+      [{pid, _}] ->
+        # flush_sync is called in terminate, so just stop
+        DynamicSupervisor.terminate_child(__MODULE__, pid)
+      [] ->
+        :ok
+    end
   end
 
   def cancel_run(run_id) do
