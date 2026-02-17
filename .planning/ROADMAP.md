@@ -46,10 +46,11 @@ Plans:
   3. Auto-scroll follows new entries when enabled
   4. User can scroll up through log history without losing position
   5. Log levels (debug/info/warn/error) are visually distinct
-**Plans:** 1 plan
+**Plans:** 2 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — LogPanel component with bounded stream limits and auto-scroll refinement
+- [x] 02-01-PLAN.md — LogPanel component with bounded stream limits and auto-scroll refinement
+- [ ] 02-02-PLAN.md — Gap closure: consumer-side batching and scroll position sync
 
 ### Phase 3: Run Page Results Display
 **Goal**: Users can explore structured experiment results through both tree navigation and raw JSON
