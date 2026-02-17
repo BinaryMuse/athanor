@@ -94,11 +94,14 @@ defmodule Athanor.Runtime do
     tables = RunBuffer.table_names(ctx.run.id)
     key = System.monotonic_time(:nanosecond)
 
+    now = DateTime.utc_now()
+
     entry = %{
       level: to_string(level),
       message: message,
       metadata: metadata,
-      inserted_at: DateTime.utc_now()
+      timestamp: now,
+      inserted_at: now
     }
 
     :ets.insert(tables.logs, {key, entry})
