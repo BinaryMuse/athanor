@@ -3,7 +3,7 @@ defmodule AthanorWeb.Experiments.RunLive.Show do
 
   alias Athanor.Experiments
   alias Athanor.Runtime
-  alias AthanorWeb.Experiments.Components.{StatusBadge, ProgressBar, LogPanel}
+  alias AthanorWeb.Experiments.Components.{StatusBadge, ProgressBar, LogPanel, ResultsPanel}
 
   @log_stream_limit 1_000
 
@@ -83,28 +83,7 @@ defmodule AthanorWeb.Experiments.RunLive.Show do
     <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
       <LogPanel.log_panel streams={@streams} auto_scroll={@auto_scroll} log_count={@log_count} />
 
-      <div class="card bg-base-200">
-        <div class="card-body">
-          <h3 class="card-title text-lg">Results</h3>
-
-          <div :if={@result_count == 0} class="text-base-content/40 text-center py-8">
-            No results yet
-          </div>
-
-          <div id="results" phx-update="stream" class="space-y-3 max-h-96 overflow-y-auto">
-            <div
-              :for={{dom_id, result} <- @streams.results}
-              id={dom_id}
-              class="p-3 bg-base-300 rounded-lg"
-            >
-              <div class="font-medium text-sm">{result.key}</div>
-              <div class="mt-1 font-mono text-xs text-base-content/60 overflow-x-auto">
-                <pre>{Jason.encode!(result.value, pretty: true)}</pre>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <ResultsPanel.results_panel streams={@streams} result_count={@result_count} />
     </div>
     """
   end
