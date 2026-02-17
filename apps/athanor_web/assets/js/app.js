@@ -33,13 +33,15 @@ const Hooks = {
     mounted() {
       this.scrollToBottom()
       this.observer = new MutationObserver(() => {
-        if (this.el.dataset.autoScroll === "true") {
+        if (this.el.dataset.autoScroll === "true" && this.isNearBottom()) {
           this.scrollToBottom()
         }
       })
       this.observer.observe(this.el, { childList: true, subtree: true })
     },
     updated() {
+      // Called when data-auto-scroll attribute changes via server push.
+      // If user just enabled auto-scroll, jump to bottom immediately.
       if (this.el.dataset.autoScroll === "true") {
         this.scrollToBottom()
       }
@@ -48,6 +50,10 @@ const Hooks = {
       if (this.observer) {
         this.observer.disconnect()
       }
+    },
+    isNearBottom() {
+      const threshold = 100 // pixels from bottom
+      return this.el.scrollHeight - this.el.scrollTop - this.el.clientHeight <= threshold
     },
     scrollToBottom() {
       this.el.scrollTop = this.el.scrollHeight
