@@ -13,7 +13,7 @@ This milestone transforms Athanor from a functional but minimal research harness
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Visual Identity and Theme Foundation** - Establish design system and theme switching ✓
-- [ ] **Phase 2: Run Page Log Display** - Virtualized log rendering for high-volume output
+- [x] **Phase 2: Run Page Log Display** - Virtualized log rendering for high-volume output ✓
 - [ ] **Phase 3: Run Page Results Display** - Structured results with tree view and JSON toggle
 - [ ] **Phase 4: Run Page Layout and Status** - Complete run page assembly with sticky header
 - [ ] **Phase 5: Configuration Forms Polish** - Schema-driven form components
@@ -49,8 +49,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [x] 02-01-PLAN.md — LogPanel component with bounded stream limits and auto-scroll refinement
-- [ ] 02-02-PLAN.md — Gap closure: ETS-based RunBuffer for producer-side batching
+- [x] 02-01-PLAN.md — LogPanel component with bounded stream limits and auto-scroll refinement ✓
+- [x] 02-02-PLAN.md — Gap closure: ETS-based RunBuffer for producer-side batching ✓
 
 ### Phase 3: Run Page Results Display
 **Goal**: Users can explore structured experiment results through both tree navigation and raw JSON
@@ -130,7 +130,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Visual Identity | 1/1 | ✓ Complete | 2026-02-17 |
-| 2. Log Display | 0/1 | Planned | - |
+| 2. Log Display | 2/2 | ✓ Complete | 2026-02-17 |
 | 3. Results Display | 0/1 | Not started | - |
 | 4. Run Layout | 0/1 | Not started | - |
 | 5. Config Forms | 0/1 | Not started | - |
