@@ -10,16 +10,16 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 Phase: 2 of 6 (Run Page Log Display)
-Plan: 1 of 1 in current phase - COMPLETE
-Status: Phase 2 complete, ready for human verification
-Last activity: 2026-02-17 - Phase 2 Plan 1 all tasks executed and committed
+Plan: 2 of 2 in current phase - COMPLETE
+Status: Phase 2 complete, all plans executed
+Last activity: 2026-02-17 - Phase 2 Plan 2 all tasks executed and committed
 
 Progress: [###-------] 33%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
+- Total plans completed: 3
 - Average duration: ~2 min
 - Total execution time: ~4 min
 
@@ -28,7 +28,7 @@ Progress: [###-------] 33%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-visual-identity-and-theme-foundation | 1/1 done | ~2 min | ~2 min |
-| 02-run-page-log-display | 1/1 done | ~2 min | ~2 min |
+| 02-run-page-log-display | 2/2 done | ~5 min | ~2.5 min |
 
 **Recent Trend:**
 - Last 5 plans: -
@@ -51,6 +51,9 @@ Recent decisions affecting current work:
 - [Phase 02-run-page-log-display]: Bounded reset on batch events (list_logs with limit) rather than carrying log entries in broadcast payload
 - [Phase 02-run-page-log-display]: AutoScroll hook stays in app.js (shared infrastructure) rather than colocated hook
 - [Phase 02-run-page-log-display]: stream/4 limit: does NOT propagate to stream_insert/4 — must pass limit: on every insert
+- [Phase 02-run-page-log-display]: ETS tables are :public so Runtime can write directly without message passing to RunBuffer
+- [Phase 02-run-page-log-display]: RunBuffer started before RunServer per-run so ETS tables exist before experiment begins
+- [Phase 02-run-page-log-display]: flush_sync called in both Runtime.complete/fail and RunServer helpers - safe due to idempotent flush
 
 ### Pending Todos
 
@@ -63,5 +66,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-17
-Stopped at: Completed 02-01-PLAN.md - Phase 2 complete, awaiting human verification
+Stopped at: Completed 02-02-PLAN.md - Phase 2 all plans complete, ready for human verification
 Resume file: None - Phase 2 complete
