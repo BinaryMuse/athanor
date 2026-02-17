@@ -114,6 +114,9 @@ defmodule Athanor.Runtime.RunServer do
         ensure_completed(state.ctx)
     end
 
+    # Stop the buffer (flushes in terminate/2)
+    Athanor.Runtime.RunSupervisor.stop_buffer(state.ctx.run.id)
+
     {:stop, :normal, state}
   end
 
@@ -121,6 +124,10 @@ defmodule Athanor.Runtime.RunServer do
   def handle_info({:DOWN, ref, :process, _pid, reason}, %{task_ref: ref} = state) do
     error = "Experiment crashed: #{inspect(reason)}"
     fail_run(state.ctx, error)
+
+    # Stop the buffer
+    Athanor.Runtime.RunSupervisor.stop_buffer(state.ctx.run.id)
+
     {:stop, :normal, state}
   end
 
@@ -134,21 +141,27 @@ defmodule Athanor.Runtime.RunServer do
 
   defp complete_run(ctx) do
     alias Athanor.Experiments.Broadcasts
+    alias Athanor.Runtime.RunBuffer
 
+    RunBuffer.flush_sync(ctx.run.id)
     {:ok, run} = Experiments.complete_run(ctx.run)
     Broadcasts.run_completed(run)
   end
 
   defp fail_run(ctx, error) do
     alias Athanor.Experiments.Broadcasts
+    alias Athanor.Runtime.RunBuffer
 
+    RunBuffer.flush_sync(ctx.run.id)
     {:ok, run} = Experiments.fail_run(ctx.run, error)
     Broadcasts.run_completed(run)
   end
 
   defp cancel_run(ctx) do
     alias Athanor.Experiments.Broadcasts
+    alias Athanor.Runtime.RunBuffer
 
+    RunBuffer.flush_sync(ctx.run.id)
     {:ok, run} = Experiments.cancel_run(ctx.run)
     Broadcasts.run_completed(run)
   end
