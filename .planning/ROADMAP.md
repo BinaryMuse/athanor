@@ -46,10 +46,10 @@ Plans:
   3. Auto-scroll follows new entries when enabled
   4. User can scroll up through log history without losing position
   5. Log levels (debug/info/warn/error) are visually distinct
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 02-01: LogPanelComponent with stream limits and batching
+- [ ] 02-01-PLAN.md — LogPanel component with bounded stream limits and auto-scroll refinement
 
 ### Phase 3: Run Page Results Display
 **Goal**: Users can explore structured experiment results through both tree navigation and raw JSON
@@ -129,7 +129,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Visual Identity | 1/1 | ✓ Complete | 2026-02-17 |
-| 2. Log Display | 0/1 | Not started | - |
+| 2. Log Display | 0/1 | Planned | - |
 | 3. Results Display | 0/1 | Not started | - |
 | 4. Run Layout | 0/1 | Not started | - |
 | 5. Config Forms | 0/1 | Not started | - |
