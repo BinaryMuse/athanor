@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** The run page must display live logs and structured results clearly and performantly, even for experiments that produce thousands of log entries over hours of execution.
-**Current focus:** Phase 4 - Run Page Layout and Status - Plan 1 COMPLETE
+**Current focus:** Phase 5 - Configuration Forms Polish - Plan 1 COMPLETE
 
 ## Current Position
 
-Phase: 4 of 6 (Run Page Layout and Status) - COMPLETE
-Plan: 1 of 1 in current phase - COMPLETE
-Status: Phase 4 all plans complete, run monitoring layout delivered, ready for Phase 5
-Last activity: 2026-02-17 - Phase 4 plan 1 executed
+Phase: 5 of 6 (Configuration Forms Polish) - IN PROGRESS
+Plan: 1 of 3 in current phase - COMPLETE
+Status: Phase 5 plan 1 complete, ConfigSchema extended with ordered properties and enhanced field metadata
+Last activity: 2026-02-17 - Phase 5 plan 1 executed
 
-Progress: [######----] 67%
+Progress: [#######---] 70%
 
 ## Performance Metrics
 
@@ -31,6 +31,7 @@ Progress: [######----] 67%
 | 02-run-page-log-display | 2/2 done | ~5 min | ~2.5 min |
 | 03-run-page-results-display | 2/2 done | ~4 min | ~2 min |
 | 04-run-page-layout-and-status | 1/1 done | ~4 min | ~4 min |
+| 05-configuration-forms-polish | 1/3 done | ~2 min | ~2 min |
 
 **Recent Trend:**
 - Last 5 plans: -
@@ -70,6 +71,8 @@ Recent decisions affecting current work:
 - [Phase 04-run-page-layout-and-status]: Process.send_after :tick only when run.status == running — stops automatically at terminal state
 - [Phase 04-run-page-layout-and-status]: ReconnectionTracker hook uses setInterval (not Phoenix socket internals) — approximate count, approach verified as sound
 - [Phase 04-run-page-layout-and-status]: Global PubSub toast via InstanceLive.Show — run page skips toast (sticky header shows status directly)
+- [Phase 05-configuration-forms-polish]: Properties changed from map to ordered list of tuples to preserve definition sequence for form rendering
+- [Phase 05-configuration-forms-polish]: Nil opts stripped from field maps via Enum.reject to keep schema maps clean
 
 ### Pending Todos
 
@@ -82,5 +85,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-17
-Stopped at: Completed 04-01-PLAN.md - Run monitoring layout with sticky header, tabs, elapsed ticker, reconnection UX, global completion toasts
-Resume file: None - Phase 4 complete, ready for Phase 5
+Stopped at: Completed 05-01-PLAN.md - Extended ConfigSchema with ordered properties, group/4, enhanced field metadata (label, description, required, format, min/max/step, options)
+Resume file: None - Phase 5 plan 1 complete, ready for plan 2
