@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** The run page must display live logs and structured results clearly and performantly, even for experiments that produce thousands of log entries over hours of execution.
-**Current focus:** Phase 3 - Run Page Results Display - COMPLETE
+**Current focus:** Phase 4 - Run Page Layout and Status - Plan 1 COMPLETE
 
 ## Current Position
 
-Phase: 3 of 6 (Run Page Results Display) - COMPLETE
-Plan: 2 of 2 in current phase - COMPLETE
-Status: Phase 3 all plans complete, PERF-01 gap closed, ready for Phase 4
-Last activity: 2026-02-17 - Phase 3 plan 2 executed
+Phase: 4 of 6 (Run Page Layout and Status) - COMPLETE
+Plan: 1 of 1 in current phase - COMPLETE
+Status: Phase 4 all plans complete, run monitoring layout delivered, ready for Phase 5
+Last activity: 2026-02-17 - Phase 4 plan 1 executed
 
-Progress: [#####-----] 55%
+Progress: [######----] 67%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
+- Total plans completed: 6
 - Average duration: ~2 min
-- Total execution time: ~8 min
+- Total execution time: ~12 min
 
 **By Phase:**
 
@@ -30,6 +30,7 @@ Progress: [#####-----] 55%
 | 01-visual-identity-and-theme-foundation | 1/1 done | ~2 min | ~2 min |
 | 02-run-page-log-display | 2/2 done | ~5 min | ~2.5 min |
 | 03-run-page-results-display | 2/2 done | ~4 min | ~2 min |
+| 04-run-page-layout-and-status | 1/1 done | ~4 min | ~4 min |
 
 **Recent Trend:**
 - Last 5 plans: -
@@ -63,6 +64,12 @@ Recent decisions affecting current work:
 - [Phase 03-run-page-results-display]: Function head pattern matching for lazy hydration: hydrated: true head renders full tree, fallback renders clickable stub
 - [Phase 03-run-page-results-display]: Map.put virtual hydrated field on Ecto struct: augmented before stream_insert, no schema change needed
 - [Phase 03-run-page-results-display]: stream_insert with same ID replaces stream item in-place: lazy hydration update mechanism
+- [Phase 04-run-page-layout-and-status]: Dedicated run/1 layout function in layouts.ex (not .heex file) — simpler, avoids embed_templates coupling
+- [Phase 04-run-page-layout-and-status]: Server-side :active_tab assign for tab switching — enables future conditional subscriptions per tab
+- [Phase 04-run-page-layout-and-status]: hidden class for inactive tab panels — streams remain in DOM, no duplicate/ordering bugs on switch
+- [Phase 04-run-page-layout-and-status]: Process.send_after :tick only when run.status == running — stops automatically at terminal state
+- [Phase 04-run-page-layout-and-status]: ReconnectionTracker hook uses setInterval (not Phoenix socket internals) — approximate count, approach verified as sound
+- [Phase 04-run-page-layout-and-status]: Global PubSub toast via InstanceLive.Show — run page skips toast (sticky header shows status directly)
 
 ### Pending Todos
 
@@ -75,5 +82,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-17
-Stopped at: Completed 03-02-PLAN.md - Lazy tree hydration implemented, PERF-01 gap closed, Phase 3 complete
-Resume file: None - Phase 3 complete, ready for Phase 4
+Stopped at: Completed 04-01-PLAN.md - Run monitoring layout with sticky header, tabs, elapsed ticker, reconnection UX, global completion toasts
+Resume file: None - Phase 4 complete, ready for Phase 5
