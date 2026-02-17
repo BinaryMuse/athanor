@@ -9,11 +9,14 @@ defmodule AthanorWeb.Experiments.RunLive.Show do
 
   @impl true
   def mount(%{"id" => id}, _session, socket) do
-    run = Experiments.get_run!(id) |> Athanor.Repo.preload(:instance)
-
-    if connected?(socket) do
-      Phoenix.PubSub.subscribe(Athanor.PubSub, "experiments:run:#{id}")
-    end
+    # Subscribe first, then fetch to avoid race with completion broadcast
+    run =
+      if connected?(socket) do
+        Phoenix.PubSub.subscribe(Athanor.PubSub, "experiments:run:#{id}")
+        Experiments.get_run!(id) |> Athanor.Repo.preload(:instance)
+      else
+        Experiments.get_run!(id) |> Athanor.Repo.preload(:instance)
+      end
 
     logs = Experiments.list_logs(run, limit: @log_stream_limit)
     results = Experiments.list_results(run)
