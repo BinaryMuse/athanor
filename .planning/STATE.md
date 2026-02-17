@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** The run page must display live logs and structured results clearly and performantly, even for experiments that produce thousands of log entries over hours of execution.
-**Current focus:** Phase 2 - Run Page Log Display
+**Current focus:** Phase 3 - Run Page Results Display
 
 ## Current Position
 
-Phase: 2 of 6 (Run Page Log Display) - COMPLETE
-Plan: 2 of 2 in current phase - VERIFIED
-Status: Phase 2 verified and complete, ready for Phase 3
-Last activity: 2026-02-17 - Phase 2 human verification passed
+Phase: 3 of 6 (Run Page Results Display) - COMPLETE
+Plan: 1 of 1 in current phase - COMPLETE
+Status: Phase 3 plan 1 complete, ready for browser verification
+Last activity: 2026-02-17 - Phase 3 plan 1 executed
 
-Progress: [###-------] 33%
+Progress: [####------] 50%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
+- Total plans completed: 4
 - Average duration: ~2 min
-- Total execution time: ~4 min
+- Total execution time: ~6 min
 
 **By Phase:**
 
@@ -29,6 +29,7 @@ Progress: [###-------] 33%
 |-------|-------|-------|----------|
 | 01-visual-identity-and-theme-foundation | 1/1 done | ~2 min | ~2 min |
 | 02-run-page-log-display | 2/2 done | ~5 min | ~2.5 min |
+| 03-run-page-results-display | 1/1 done | ~2 min | ~2 min |
 
 **Recent Trend:**
 - Last 5 plans: -
@@ -54,6 +55,11 @@ Recent decisions affecting current work:
 - [Phase 02-run-page-log-display]: ETS tables are :public so Runtime can write directly without message passing to RunBuffer
 - [Phase 02-run-page-log-display]: RunBuffer started before RunServer per-run so ETS tables exist before experiment begins
 - [Phase 02-run-page-log-display]: flush_sync called in both Runtime.complete/fail and RunServer helpers - safe due to idempotent flush
+- [Phase 03-run-page-results-display]: Recursive defp json_tree/1 with three pattern-matched clauses (map/list/scalar) for arbitrary JSON rendering
+- [Phase 03-run-page-results-display]: assigns = assign(assigns, :entries, ...) pattern to avoid HEEx external-variable warnings in recursive component
+- [Phase 03-run-page-results-display]: encode_json/1 helper using Jason.encode/2 (not bang) with [encoding error] fallback
+- [Phase 03-run-page-results-display]: First-level keys (depth=0) start expanded; depth > 0 starts collapsed
+- [Phase 03-run-page-results-display]: JS.toggle_class for client-side tree expand/collapse survives LiveView DOM patches
 
 ### Pending Todos
 
@@ -66,5 +72,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-17
-Stopped at: Completed 02-02-PLAN.md - Phase 2 all plans complete, ready for human verification
-Resume file: None - Phase 2 complete
+Stopped at: Completed 03-01-PLAN.md - ResultsPanel component created and wired in RunLive.Show
+Resume file: None - Phase 3 plan complete, ready for browser verification
