@@ -30,7 +30,7 @@ defmodule Athanor.Runtime do
 
   alias Athanor.Experiments
   alias Athanor.Experiments.{Run, Broadcasts}
-  alias Athanor.Runtime.{RunContext, RunSupervisor}
+  alias Athanor.Runtime.{RunContext, RunSupervisor, RunBuffer}
 
   # --- Context Creation ---
 
@@ -91,24 +91,41 @@ defmodule Athanor.Runtime do
   """
   def log(%RunContext{} = ctx, level, message, metadata \\ nil)
       when level in [:debug, :info, :warn, :error] do
-    level_str = to_string(level)
+    tables = RunBuffer.table_names(ctx.run.id)
+    key = System.monotonic_time(:nanosecond)
 
-    case Experiments.create_log(ctx.run, level_str, message, metadata) do
-      {:ok, log} ->
-        Broadcasts.log_added(ctx.run.id, log)
-        :ok
+    entry = %{
+      level: to_string(level),
+      message: message,
+      metadata: metadata,
+      inserted_at: DateTime.utc_now()
+    }
 
-      error ->
-        error
-    end
+    :ets.insert(tables.logs, {key, entry})
+    :ok
   end
 
   @doc """
   Batch log multiple entries efficiently.
   """
   def log_batch(%RunContext{} = ctx, entries) when is_list(entries) do
-    {count, _} = Experiments.create_logs(ctx.run, entries)
-    Broadcasts.logs_added(ctx.run.id, count)
+    tables = RunBuffer.table_names(ctx.run.id)
+    now = DateTime.utc_now()
+
+    ets_entries =
+      entries
+      |> Enum.with_index()
+      |> Enum.map(fn {{level, message, metadata}, idx} ->
+        key = System.monotonic_time(:nanosecond) + idx
+        {key, %{
+          level: to_string(level),
+          message: message,
+          metadata: metadata,
+          inserted_at: now
+        }}
+      end)
+
+    :ets.insert(tables.logs, ets_entries)
     :ok
   end
 
@@ -123,23 +140,19 @@ defmodule Athanor.Runtime do
       Runtime.result(ctx, "model_response", %{text: "Hello", tokens: 5})
   """
   def result(%RunContext{} = ctx, key, value) when is_binary(key) do
+    tables = RunBuffer.table_names(ctx.run.id)
+    mono_key = System.monotonic_time(:nanosecond)
     value = if is_map(value), do: value, else: %{value: value}
 
-    case Experiments.create_result(ctx.run, key, value) do
-      {:ok, result} ->
-        Broadcasts.result_added(ctx.run.id, result)
-        :ok
-
-      error ->
-        error
-    end
+    :ets.insert(tables.results, {mono_key, %{key: key, value: value}})
+    :ok
   end
 
   # --- Progress ---
 
   @doc """
   Report progress for the current run.
-  Progress is ephemeral (not persisted) but broadcast for UI updates.
+  Progress is buffered and broadcast on the next flush interval (every 100ms).
 
   ## Examples
 
@@ -148,6 +161,8 @@ defmodule Athanor.Runtime do
   """
   def progress(%RunContext{} = ctx, current, total, message \\ nil)
       when is_integer(current) and is_integer(total) do
+    tables = RunBuffer.table_names(ctx.run.id)
+
     progress = %{
       current: current,
       total: total,
@@ -156,7 +171,8 @@ defmodule Athanor.Runtime do
       updated_at: DateTime.utc_now()
     }
 
-    Broadcasts.progress_updated(ctx.run.id, progress)
+    # Single key - always overwrites previous
+    :ets.insert(tables.progress, {:current, progress})
     :ok
   end
 
@@ -166,6 +182,9 @@ defmodule Athanor.Runtime do
   Mark the run as successfully completed.
   """
   def complete(%RunContext{} = ctx) do
+    # Flush all pending data before marking complete
+    RunBuffer.flush_sync(ctx.run.id)
+
     case Experiments.complete_run(ctx.run) do
       {:ok, run} ->
         Broadcasts.run_completed(run)
@@ -180,6 +199,9 @@ defmodule Athanor.Runtime do
   Mark the run as failed with an error message.
   """
   def fail(%RunContext{} = ctx, error) when is_binary(error) do
+    # Flush pending data even on failure
+    RunBuffer.flush_sync(ctx.run.id)
+
     case Experiments.fail_run(ctx.run, error) do
       {:ok, run} ->
         Broadcasts.run_completed(run)
