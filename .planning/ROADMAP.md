@@ -31,10 +31,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Theme persists across browser sessions
   4. System theme preference is detected on first visit
   5. No flash of unstyled content (FOUC) on page load
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 01-01: Design tokens and theme infrastructure
+- [ ] 01-01-PLAN.md — FOUC fix, scientific themes, and design token documentation
 
 ### Phase 2: Run Page Log Display
 **Goal**: Users can monitor high-volume experiment logs without browser performance degradation
@@ -128,7 +128,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Visual Identity | 0/1 | Not started | - |
+| 1. Visual Identity | 0/1 | Planned | - |
 | 2. Log Display | 0/1 | Not started | - |
 | 3. Results Display | 0/1 | Not started | - |
 | 4. Run Layout | 0/1 | Not started | - |
