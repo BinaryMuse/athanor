@@ -20,6 +20,7 @@ defmodule AthanorWeb.Experiments.RunLive.Show do
 
     logs = Experiments.list_logs(run, limit: @log_stream_limit)
     results = Experiments.list_results(run)
+    hydrated_results = Enum.map(results, &Map.put(&1, :hydrated, false))
 
     socket =
       socket
@@ -30,7 +31,7 @@ defmodule AthanorWeb.Experiments.RunLive.Show do
       |> assign(:log_count, length(logs))
       |> assign(:result_count, length(results))
       |> stream(:logs, logs, limit: -@log_stream_limit)
-      |> stream(:results, results)
+      |> stream(:results, hydrated_results)
 
     {:ok, socket}
   end
@@ -132,6 +133,13 @@ defmodule AthanorWeb.Experiments.RunLive.Show do
   end
 
   @impl true
+  def handle_event("hydrate_result", %{"id" => id}, socket) do
+    result = Experiments.get_result!(id)
+    result = Map.put(result, :hydrated, true)
+    {:noreply, stream_insert(socket, :results, result)}
+  end
+
+  @impl true
   def handle_info({:run_updated, run}, socket) do
     {:noreply, assign(socket, :run, run)}
   end
@@ -161,6 +169,8 @@ defmodule AthanorWeb.Experiments.RunLive.Show do
 
   @impl true
   def handle_info({:result_added, result}, socket) do
+    result = Map.put(result, :hydrated, false)
+
     socket =
       socket
       |> update(:result_count, &(&1 + 1))
@@ -174,6 +184,8 @@ defmodule AthanorWeb.Experiments.RunLive.Show do
     # Stream insert the new results directly - no DB round-trip
     socket =
       Enum.reduce(results, socket, fn result, acc ->
+        result = Map.put(result, :hydrated, false)
+
         acc
         |> update(:result_count, &(&1 + 1))
         |> stream_insert(:results, result)

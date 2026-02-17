@@ -108,6 +108,10 @@ defmodule Athanor.Experiments do
     end
   end
 
+  def get_result!(id) do
+    Repo.get!(Result, id)
+  end
+
   def get_results_by_key(%Run{} = run, key) do
     Result
     |> where([r], r.run_id == ^run.id and r.key == ^key)
