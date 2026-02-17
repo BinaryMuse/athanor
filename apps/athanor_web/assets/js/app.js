@@ -32,26 +32,6 @@ const Hooks = {
   AutoScroll: {
     mounted() {
       this.scrollToBottom()
-
-      // Track if we've pushed a scroll-away event to avoid spamming
-      this.scrolledAway = false
-
-      // Listen for user scroll to detect scroll-away intent
-      this.el.addEventListener("scroll", () => {
-        const nearBottom = this.isNearBottom()
-
-        // If user scrolled away from bottom and auto-scroll is still enabled, notify server
-        if (!nearBottom && this.el.dataset.autoScroll === "true" && !this.scrolledAway) {
-          this.scrolledAway = true
-          this.pushEvent("scroll_position", { near_bottom: false })
-        }
-
-        // Reset scrolledAway flag when user returns to bottom
-        if (nearBottom) {
-          this.scrolledAway = false
-        }
-      })
-
       this.observer = new MutationObserver(() => {
         if (this.el.dataset.autoScroll === "true" && this.isNearBottom()) {
           this.scrollToBottom()
@@ -61,10 +41,9 @@ const Hooks = {
     },
     updated() {
       // Called when data-auto-scroll attribute changes via server push.
-      // If user just enabled auto-scroll, jump to bottom immediately and reset flag.
+      // If user just enabled auto-scroll, jump to bottom immediately.
       if (this.el.dataset.autoScroll === "true") {
         this.scrollToBottom()
-        this.scrolledAway = false
       }
     },
     destroyed() {

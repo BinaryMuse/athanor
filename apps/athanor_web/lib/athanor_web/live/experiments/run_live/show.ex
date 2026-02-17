@@ -6,7 +6,6 @@ defmodule AthanorWeb.Experiments.RunLive.Show do
   alias AthanorWeb.Experiments.Components.{StatusBadge, ProgressBar, LogPanel}
 
   @log_stream_limit 1_000
-  @log_batch_interval_ms 100
 
   @impl true
   def mount(%{"id" => id}, _session, socket) do
@@ -27,7 +26,6 @@ defmodule AthanorWeb.Experiments.RunLive.Show do
       |> assign(:auto_scroll, true)
       |> assign(:log_count, length(logs))
       |> assign(:result_count, length(results))
-      |> assign(:pending_logs, [])
       |> stream(:logs, logs, limit: -@log_stream_limit)
       |> stream(:results, results)
 
@@ -146,61 +144,18 @@ defmodule AthanorWeb.Experiments.RunLive.Show do
   end
 
   @impl true
-  def handle_event("scroll_position", %{"near_bottom" => false}, socket) do
-    # User scrolled away from bottom — disable auto-scroll to respect their intent
-    {:noreply, assign(socket, :auto_scroll, false)}
-  end
-
-  def handle_event("scroll_position", %{"near_bottom" => true}, socket) do
-    # User scrolled back to bottom — let them re-enable manually via toggle
-    {:noreply, socket}
-  end
-
-  @impl true
   def handle_info({:run_updated, run}, socket) do
     {:noreply, assign(socket, :run, run)}
   end
 
   @impl true
   def handle_info({:log_added, log}, socket) do
-    pending = [log | socket.assigns.pending_logs]
-
-    # Schedule flush if this is the first pending log
     socket =
-      if socket.assigns.pending_logs == [] do
-        Process.send_after(self(), :flush_pending_logs, @log_batch_interval_ms)
-        socket
-      else
-        socket
-      end
+      socket
+      |> update(:log_count, &(&1 + 1))
+      |> stream_insert(:logs, log, limit: -@log_stream_limit)
 
-    {:noreply, assign(socket, :pending_logs, pending)}
-  end
-
-  @impl true
-  def handle_info(:flush_pending_logs, socket) do
-    pending = socket.assigns.pending_logs
-
-    if pending == [] do
-      {:noreply, socket}
-    else
-      # Reverse to maintain chronological order (oldest first)
-      logs_to_insert = Enum.reverse(pending)
-      count = length(logs_to_insert)
-
-      socket =
-        socket
-        |> update(:log_count, &(&1 + count))
-        |> assign(:pending_logs, [])
-
-      # Insert all pending logs with stream_insert (maintains limit)
-      socket =
-        Enum.reduce(logs_to_insert, socket, fn log, acc ->
-          stream_insert(acc, :logs, log, limit: -@log_stream_limit)
-        end)
-
-      {:noreply, socket}
-    end
+    {:noreply, socket}
   end
 
   @impl true
@@ -211,7 +166,6 @@ defmodule AthanorWeb.Experiments.RunLive.Show do
     socket =
       socket
       |> assign(:log_count, length(logs))
-      |> assign(:pending_logs, [])
       |> stream(:logs, logs, reset: true, limit: -@log_stream_limit)
 
     {:noreply, socket}
