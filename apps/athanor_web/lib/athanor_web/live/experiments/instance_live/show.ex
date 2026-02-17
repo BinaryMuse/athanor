@@ -12,6 +12,7 @@ defmodule AthanorWeb.Experiments.InstanceLive.Show do
 
     if connected?(socket) do
       Phoenix.PubSub.subscribe(Athanor.PubSub, "experiments:instance:#{id}")
+      Phoenix.PubSub.subscribe(Athanor.PubSub, "experiments:runs:active")
     end
 
     runs = Experiments.list_runs(instance)
@@ -211,5 +212,19 @@ defmodule AthanorWeb.Experiments.InstanceLive.Show do
   @impl true
   def handle_info({:instance_updated, instance}, socket) do
     {:noreply, assign(socket, :instance, instance)}
+  end
+
+  @impl true
+  def handle_info({:run_completed, run}, socket) do
+    msg =
+      case run.status do
+        "completed" -> "Run completed successfully"
+        "failed" -> "Run failed"
+        "cancelled" -> "Run cancelled"
+        _ -> nil
+      end
+
+    socket = if msg, do: put_flash(socket, :info, msg), else: socket
+    {:noreply, socket}
   end
 end
