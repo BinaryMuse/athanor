@@ -50,7 +50,7 @@ Plans:
 
 Plans:
 - [x] 02-01-PLAN.md — LogPanel component with bounded stream limits and auto-scroll refinement
-- [ ] 02-02-PLAN.md — Gap closure: consumer-side batching and scroll position sync
+- [ ] 02-02-PLAN.md — Gap closure: ETS-based RunBuffer for producer-side batching
 
 ### Phase 3: Run Page Results Display
 **Goal**: Users can explore structured experiment results through both tree navigation and raw JSON
