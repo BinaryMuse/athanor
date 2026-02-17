@@ -76,10 +76,10 @@ Plans:
   2. Log and results panels are arranged for efficient monitoring
   3. Reconnection after socket disconnect recovers state correctly
   4. Run completion/failure/cancellation states display clearly
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 04-01: RunLive.Show layout refactor with sticky header
+- [ ] 04-01-PLAN.md — Sticky header, tabbed panels, elapsed ticker, reconnection UX
 
 ### Phase 5: Configuration Forms Polish
 **Goal**: Users can configure experiments through clear, well-organized forms
