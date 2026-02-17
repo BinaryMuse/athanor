@@ -18,6 +18,13 @@ defmodule AthanorWeb.Experiments.RunLive.Show do
         Experiments.get_run!(id) |> Athanor.Repo.preload(:instance)
       end
 
+    # Start elapsed time ticker if running and connected
+    if connected?(socket) && run.status == "running" do
+      Process.send_after(self(), :tick, 1_000)
+    end
+
+    elapsed = if run.status == "running", do: elapsed_since(run.started_at), else: 0
+
     logs = Experiments.list_logs(run, limit: @log_stream_limit)
     results = Experiments.list_results(run)
     hydrated_results = Enum.map(results, &Map.put(&1, :hydrated, false))
@@ -27,121 +34,151 @@ defmodule AthanorWeb.Experiments.RunLive.Show do
       |> assign(:run, run)
       |> assign(:instance, run.instance)
       |> assign(:progress, nil)
+      |> assign(:active_tab, :logs)
       |> assign(:auto_scroll, true)
       |> assign(:log_count, length(logs))
       |> assign(:result_count, length(results))
+      |> assign(:elapsed_seconds, elapsed)
+      |> assign(:reconnecting, false)
+      |> assign(:reconnect_attempts, 0)
+      |> assign(:needs_refresh, false)
       |> stream(:logs, logs, limit: -@log_stream_limit)
       |> stream(:results, hydrated_results)
 
-    {:ok, socket}
+    {:ok, socket, layout: {AthanorWeb.Layouts, :run}}
   end
 
   @impl true
   def render(assigns) do
     ~H"""
-    <.header>
-      Run {short_id(@run.id)}
-      <:subtitle>
-        <.link navigate={~p"/experiments/#{@instance.id}"} class="link link-hover">
-          {@instance.name}
-        </.link>
-      </:subtitle>
-      <:actions>
-        <.button
-          :if={@run.status == "running"}
-          phx-click="cancel_run"
-          class="btn-warning"
-          data-confirm="Are you sure you want to cancel this run?"
-        >
-          <.icon name="hero-stop" class="size-4 mr-1" />
-          Cancel
-        </.button>
-        <.link navigate={~p"/experiments/#{@instance.id}"} class="btn btn-ghost">
-          Back to Instance
-        </.link>
-      </:actions>
-    </.header>
+    <div class="flex flex-col min-h-screen" id="run-page" phx-hook="ReconnectionTracker">
 
-    <div class="mt-6 flex items-center gap-4">
-      <StatusBadge.status_badge status={@run.status} />
-      <span :if={@run.started_at} class="text-sm text-base-content/60">
-        Started {format_time(@run.started_at)}
-      </span>
-      <span :if={@run.completed_at} class="text-sm text-base-content/60">
-        · Completed in {format_duration(@run.started_at, @run.completed_at)}
-      </span>
-    </div>
+      <%!-- Sticky header --%>
+      <header class="sticky top-0 z-10 bg-base-100 border-b border-base-300 shadow-sm">
+        <div class="px-4 sm:px-6 lg:px-8 py-3">
 
-    <div :if={@run.status == "running"} class="mt-4">
-      <ProgressBar.progress_bar status={@run.status} progress={@progress} />
-    </div>
+          <%!-- Breadcrumb row --%>
+          <div class="flex items-center gap-2 text-sm text-base-content/60 mb-2">
+            <.link navigate={~p"/experiments"} class="hover:text-base-content">Experiments</.link>
+            <span>/</span>
+            <.link navigate={~p"/experiments/#{@instance.id}"} class="hover:text-base-content">
+              {@instance.name}
+            </.link>
+            <span>/</span>
+            <span class="text-base-content">Run {short_id(@run.id)}</span>
+          </div>
 
-    <div :if={@run.error} class="alert alert-error mt-4">
-      <.icon name="hero-exclamation-circle" class="size-5" />
-      <span>{@run.error}</span>
-    </div>
+          <%!-- Status row --%>
+          <div class="flex items-center gap-4 flex-wrap">
+            <StatusBadge.status_badge status={@run.status} />
 
-    <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <LogPanel.log_panel streams={@streams} auto_scroll={@auto_scroll} log_count={@log_count} />
+            <span class="font-medium">{@instance.name}</span>
 
-      <ResultsPanel.results_panel streams={@streams} result_count={@result_count} />
+            <span :if={format_elapsed(@run, @elapsed_seconds) != ""} class="text-sm text-base-content/60">
+              {format_elapsed(@run, @elapsed_seconds)}
+            </span>
+
+            <%!-- Progress indicator --%>
+            <div :if={@run.status == "running"} class="flex items-center gap-2">
+              <ProgressBar.progress_bar status={@run.status} progress={@progress} />
+            </div>
+
+            <%!-- Reconnection indicator --%>
+            <span :if={@reconnecting} class="text-sm text-warning ml-2">
+              Reconnecting (attempt {@reconnect_attempts})...
+            </span>
+
+            <%!-- Spacer + actions --%>
+            <div class="ml-auto flex items-center gap-2">
+              <button
+                :if={@needs_refresh}
+                phx-click="refresh_data"
+                class="btn btn-sm btn-ghost"
+              >
+                Refresh
+              </button>
+              <button
+                :if={@run.status == "running"}
+                phx-click="cancel_run"
+                class="btn btn-sm btn-warning"
+                data-confirm="Cancel this run?"
+              >
+                <.icon name="hero-stop" class="size-4 mr-1" /> Cancel
+              </button>
+            </div>
+          </div>
+
+          <%!-- Error display --%>
+          <div :if={@run.error} class="mt-2 text-sm text-error flex items-center gap-1">
+            <.icon name="hero-exclamation-circle" class="size-4" />
+            {@run.error}
+          </div>
+        </div>
+      </header>
+
+      <%!-- Tab bar + content --%>
+      <div class="flex-1 flex flex-col overflow-hidden px-4 sm:px-6 lg:px-8">
+
+        <%!-- Tab bar with daisyUI tabs --%>
+        <div role="tablist" class="tabs tabs-border border-b border-base-300 mt-4">
+          <button
+            role="tab"
+            class={["tab", @active_tab == :logs && "tab-active"]}
+            phx-click="switch_tab"
+            phx-value-tab="logs"
+          >
+            Logs ({@log_count})
+          </button>
+          <button
+            role="tab"
+            class={["tab", @active_tab == :results && "tab-active"]}
+            phx-click="switch_tab"
+            phx-value-tab="results"
+          >
+            Results ({@result_count})
+          </button>
+        </div>
+
+        <%!-- Tab panels: use hidden class for inactive --%>
+        <div class={["flex-1 overflow-y-auto py-4", @active_tab != :logs && "hidden"]}>
+          <LogPanel.log_panel streams={@streams} auto_scroll={@auto_scroll} log_count={@log_count} />
+        </div>
+        <div class={["flex-1 overflow-y-auto py-4", @active_tab != :results && "hidden"]}>
+          <ResultsPanel.results_panel streams={@streams} result_count={@result_count} />
+        </div>
+      </div>
     </div>
     """
   end
 
-  defp short_id(id) do
-    id |> String.slice(0, 8)
-  end
+  # --- Elapsed time ticker ---
 
-  defp format_time(datetime) do
-    Calendar.strftime(datetime, "%b %d, %Y %H:%M:%S")
-  end
-
-  defp format_duration(nil, _), do: ""
-  defp format_duration(_, nil), do: ""
-
-  defp format_duration(started_at, completed_at) do
-    diff = DateTime.diff(completed_at, started_at, :millisecond)
-
-    cond do
-      diff < 1000 -> "#{diff}ms"
-      diff < 60_000 -> "#{Float.round(diff / 1000, 1)}s"
-      true -> "#{div(diff, 60_000)}m #{rem(div(diff, 1000), 60)}s"
+  @impl true
+  def handle_info(:tick, socket) do
+    if socket.assigns.run.status == "running" do
+      Process.send_after(self(), :tick, 1_000)
+      {:noreply, assign(socket, :elapsed_seconds, elapsed_since(socket.assigns.run.started_at))}
+    else
+      # Stop ticking when run has ended
+      {:noreply, socket}
     end
   end
 
-  @impl true
-  def handle_event("cancel_run", _params, socket) do
-    case Runtime.cancel_run(socket.assigns.run) do
-      {:ok, _run} ->
-        {:noreply, put_flash(socket, :info, "Run cancelled")}
-
-      {:error, reason} ->
-        {:noreply, put_flash(socket, :error, "Cannot cancel: #{inspect(reason)}")}
-    end
-  end
-
-  @impl true
-  def handle_event("toggle_auto_scroll", _params, socket) do
-    {:noreply, assign(socket, :auto_scroll, !socket.assigns.auto_scroll)}
-  end
-
-  @impl true
-  def handle_event("disable_auto_scroll", _params, socket) do
-    # User scrolled away from bottom — disable auto-scroll to respect their intent
-    {:noreply, assign(socket, :auto_scroll, false)}
-  end
-
-  @impl true
-  def handle_event("hydrate_result", %{"id" => id}, socket) do
-    result = Experiments.get_result!(id)
-    result = Map.put(result, :hydrated, true)
-    {:noreply, stream_insert(socket, :results, result)}
-  end
+  # --- Run events ---
 
   @impl true
   def handle_info({:run_updated, run}, socket) do
-    {:noreply, assign(socket, :run, run)}
+    socket = assign(socket, :run, run)
+
+    # Freeze elapsed time when run transitions to terminal state
+    socket =
+      if run.status != "running" do
+        assign(socket, :elapsed_seconds, final_elapsed(run))
+      else
+        socket
+      end
+
+    {:noreply, socket}
   end
 
   @impl true
@@ -197,5 +234,121 @@ defmodule AthanorWeb.Experiments.RunLive.Show do
   @impl true
   def handle_info({:progress_updated, progress}, socket) do
     {:noreply, assign(socket, :progress, progress)}
+  end
+
+  # --- User events ---
+
+  @impl true
+  def handle_event("switch_tab", %{"tab" => tab}, socket) do
+    {:noreply, assign(socket, :active_tab, String.to_existing_atom(tab))}
+  end
+
+  @impl true
+  def handle_event("cancel_run", _params, socket) do
+    case Runtime.cancel_run(socket.assigns.run) do
+      {:ok, _run} ->
+        {:noreply, put_flash(socket, :info, "Run cancelled")}
+
+      {:error, reason} ->
+        {:noreply, put_flash(socket, :error, "Cannot cancel: #{inspect(reason)}")}
+    end
+  end
+
+  @impl true
+  def handle_event("toggle_auto_scroll", _params, socket) do
+    {:noreply, assign(socket, :auto_scroll, !socket.assigns.auto_scroll)}
+  end
+
+  @impl true
+  def handle_event("disable_auto_scroll", _params, socket) do
+    # User scrolled away from bottom — disable auto-scroll to respect their intent
+    {:noreply, assign(socket, :auto_scroll, false)}
+  end
+
+  @impl true
+  def handle_event("hydrate_result", %{"id" => id}, socket) do
+    result = Experiments.get_result!(id)
+    result = Map.put(result, :hydrated, true)
+    {:noreply, stream_insert(socket, :results, result)}
+  end
+
+  @impl true
+  def handle_event("reconnecting", %{"attempt" => n}, socket) do
+    {:noreply, assign(socket, reconnecting: true, reconnect_attempts: n)}
+  end
+
+  @impl true
+  def handle_event("reconnected", _params, socket) do
+    {:noreply, assign(socket, reconnecting: false, needs_refresh: true)}
+  end
+
+  @impl true
+  def handle_event("refresh_data", _params, socket) do
+    run = socket.assigns.run
+    logs = Experiments.list_logs(run, limit: @log_stream_limit)
+    results = Experiments.list_results(run)
+    hydrated_results = Enum.map(results, &Map.put(&1, :hydrated, false))
+
+    socket =
+      socket
+      |> assign(:log_count, length(logs))
+      |> assign(:result_count, length(results))
+      |> assign(:needs_refresh, false)
+      |> stream(:logs, logs, reset: true, limit: -@log_stream_limit)
+      |> stream(:results, hydrated_results, reset: true)
+
+    {:noreply, socket}
+  end
+
+  # --- Helpers ---
+
+  defp short_id(id) do
+    id |> String.slice(0, 8)
+  end
+
+  defp elapsed_since(nil), do: 0
+
+  defp elapsed_since(started_at) do
+    DateTime.diff(DateTime.utc_now(), started_at, :second)
+  end
+
+  defp final_elapsed(%{completed_at: completed_at, started_at: started_at})
+       when not is_nil(completed_at) and not is_nil(started_at) do
+    DateTime.diff(completed_at, started_at, :second)
+  end
+
+  defp final_elapsed(_), do: 0
+
+  defp format_elapsed(%{completed_at: completed_at, started_at: started_at}, _)
+       when not is_nil(completed_at) and not is_nil(started_at) do
+    format_duration(started_at, completed_at)
+  end
+
+  defp format_elapsed(%{status: "running", started_at: started_at}, elapsed_seconds)
+       when not is_nil(started_at) do
+    format_seconds(elapsed_seconds)
+  end
+
+  defp format_elapsed(_, _), do: ""
+
+  defp format_duration(nil, _), do: ""
+  defp format_duration(_, nil), do: ""
+
+  defp format_duration(started_at, completed_at) do
+    diff = DateTime.diff(completed_at, started_at, :millisecond)
+
+    cond do
+      diff < 1000 -> "#{diff}ms"
+      diff < 60_000 -> "#{Float.round(diff / 1000, 1)}s"
+      true -> "#{div(diff, 60_000)}m #{rem(div(diff, 1000), 60)}s"
+    end
+  end
+
+  defp format_seconds(s) when s < 60, do: "#{s}s"
+
+  defp format_seconds(s) do
+    m = div(s, 60)
+    sec = rem(s, 60)
+    "#{m}m #{sec}s"
   end
 end

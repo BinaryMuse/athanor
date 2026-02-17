@@ -6,6 +6,8 @@ defmodule AthanorWeb.Experiments.Components.ResultsPanel do
   Result cards are lazy-hydrated: they render as lightweight stubs
   initially, and full tree content is loaded on demand when the user
   clicks to expand.
+
+  Renders without card wrapper — intended for use inside a tab panel.
   """
 
   use Phoenix.Component
@@ -17,28 +19,17 @@ defmodule AthanorWeb.Experiments.Components.ResultsPanel do
 
   def results_panel(assigns) do
     ~H"""
-    <div class="card bg-base-200">
-      <div class="card-body">
-        <div class="flex items-center justify-between">
-          <h3 class="card-title text-lg">Results</h3>
-          <span class="text-sm text-base-content/60">
-            {@result_count} result{if @result_count != 1, do: "s"}
-          </span>
-        </div>
+    <div :if={@result_count == 0} class="text-base-content/40 text-center py-8">
+      No results yet
+    </div>
 
-        <div :if={@result_count == 0} class="text-base-content/40 text-center py-8">
-          No results yet
-        </div>
-
-        <div id="results" phx-update="stream" class="space-y-3">
-          <div
-            :for={{dom_id, result} <- @streams.results}
-            id={dom_id}
-            class="bg-base-300 rounded-box p-3"
-          >
-            <.result_card result={result} />
-          </div>
-        </div>
+    <div id="results" phx-update="stream" class="space-y-3">
+      <div
+        :for={{dom_id, result} <- @streams.results}
+        id={dom_id}
+        class="bg-base-300 rounded-box p-3"
+      >
+        <.result_card result={result} />
       </div>
     </div>
     """
