@@ -38,11 +38,28 @@ Schema-driven configuration forms for experiment setup. Users can configure expe
 - Unlimited nesting depth with visual indentation
 - Drag handles preferred for reordering, fall back to up/down buttons if implementation proves complex
 
+### Architecture decision: Client-side form management
+**Decision:** Use a JavaScript form library (e.g., Felte) to manage form state client-side, rather than syncing state with LiveView on every change.
+
+**Rationale:** Initial implementation attempted server-side form state management via LiveView, but this proved problematic:
+- Nested dynamic lists require syncing state on every keystroke
+- LiveView's phx-change events don't include form data for phx-click handlers
+- Debounce timing causes race conditions between typing and add/remove operations
+- The indexed map format from form params is awkward to reconcile with list state
+
+**Approach:**
+- Elixir ConfigSchema (from 05-01) defines the schema with metadata
+- Schema serialized to JSON and passed to JS form manager
+- JS handles all form interactions (typing, add/remove, reorder) client-side
+- On submit, JS serializes complete form state and pushes to LiveView
+- LiveView validates and saves - no complex state sync needed
+
 ### Claude's Discretion
 - List reordering implementation approach (drag-and-drop vs button-based)
 - Exact visual styling within established design system
 - Performance optimizations for large schemas
 - Specific indentation/spacing for nested levels
+- Choice of JS form library (Felte or alternative based on research)
 
 </decisions>
 

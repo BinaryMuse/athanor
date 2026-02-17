@@ -9,10 +9,10 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 ## Current Position
 
-Phase: 5 of 6 (Configuration Forms Polish) - IN PROGRESS
-Plan: 1 of 3 in current phase - COMPLETE
-Status: Phase 5 plan 1 complete, ConfigSchema extended with ordered properties and enhanced field metadata
-Last activity: 2026-02-17 - Phase 5 plan 1 executed
+Phase: 5 of 6 (Configuration Forms Polish) - RE-PLANNING
+Plan: 1 complete, plans 2-3 being revised
+Status: Plan 05-01 complete (ConfigSchema enhancements). Plans 05-02/05-03 attempted but reverted - server-side form state management proved problematic. Re-planning with client-side form management approach.
+Last activity: 2026-02-17 - Reverted to 05-01, updating approach
 
 Progress: [#######---] 70%
 
@@ -73,6 +73,7 @@ Recent decisions affecting current work:
 - [Phase 04-run-page-layout-and-status]: Global PubSub toast via InstanceLive.Show — run page skips toast (sticky header shows status directly)
 - [Phase 05-configuration-forms-polish]: Properties changed from map to ordered list of tuples to preserve definition sequence for form rendering
 - [Phase 05-configuration-forms-polish]: Nil opts stripped from field maps via Enum.reject to keep schema maps clean
+- [Phase 05-configuration-forms-polish]: Client-side form management — JS form library handles state, LiveView only validates/saves on submit (server-side sync proved problematic for nested dynamic lists)
 
 ### Pending Todos
 
@@ -85,5 +86,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-17
-Stopped at: Completed 05-01-PLAN.md - Extended ConfigSchema with ordered properties, group/4, enhanced field metadata (label, description, required, format, min/max/step, options)
-Resume file: None - Phase 5 plan 1 complete, ready for plan 2
+Stopped at: Reverted 05-02/05-03 implementation. Server-side form state sync had fundamental issues with nested lists. Re-planning to use client-side JS form management (Felte or similar).
+Resume file: None - Ready for /gsd:plan-phase 5 to create revised plans
