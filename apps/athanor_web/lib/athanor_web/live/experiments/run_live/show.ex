@@ -168,14 +168,14 @@ defmodule AthanorWeb.Experiments.RunLive.Show do
   end
 
   @impl true
-  def handle_info({:logs_added, _count}, socket) do
-    # Refresh logs when batch added — bounded to stream limit
-    logs = Experiments.list_logs(socket.assigns.run, limit: @log_stream_limit)
-
+  def handle_info({:logs_added, logs}, socket) when is_list(logs) do
+    # Stream insert the new logs directly - no DB round-trip
     socket =
-      socket
-      |> assign(:log_count, length(logs))
-      |> stream(:logs, logs, reset: true, limit: -@log_stream_limit)
+      Enum.reduce(logs, socket, fn log, acc ->
+        acc
+        |> update(:log_count, &(&1 + 1))
+        |> stream_insert(:logs, log, limit: -@log_stream_limit)
+      end)
 
     {:noreply, socket}
   end
@@ -191,14 +191,14 @@ defmodule AthanorWeb.Experiments.RunLive.Show do
   end
 
   @impl true
-  def handle_info({:results_added, _count}, socket) do
-    # Refresh results when batch added
-    results = Experiments.list_results(socket.assigns.run)
-
+  def handle_info({:results_added, results}, socket) when is_list(results) do
+    # Stream insert the new results directly - no DB round-trip
     socket =
-      socket
-      |> assign(:result_count, length(results))
-      |> stream(:results, results, reset: true)
+      Enum.reduce(results, socket, fn result, acc ->
+        acc
+        |> update(:result_count, &(&1 + 1))
+        |> stream_insert(:results, result)
+      end)
 
     {:noreply, socket}
   end

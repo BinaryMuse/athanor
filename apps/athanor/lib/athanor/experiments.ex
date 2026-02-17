@@ -135,7 +135,12 @@ defmodule Athanor.Experiments do
         }
       end)
 
-    Repo.insert_all(Result, results)
+    {count, _} = Repo.insert_all(Result, results)
+
+    # Convert maps to structs for stream_insert compatibility
+    result_structs = Enum.map(results, &struct(Result, &1))
+
+    {count, result_structs}
   end
 
   # --- Logs ---
@@ -172,6 +177,7 @@ defmodule Athanor.Experiments do
 
   @doc """
   Batch insert multiple log entries efficiently.
+  Returns {count, log_structs} so caller can broadcast the actual records.
   """
   def create_logs(%Run{} = run, entries) when is_list(entries) do
     now = DateTime.utc_now()
@@ -189,6 +195,11 @@ defmodule Athanor.Experiments do
         }
       end)
 
-    Repo.insert_all(Log, logs)
+    {count, _} = Repo.insert_all(Log, logs)
+
+    # Convert maps to structs for stream_insert compatibility
+    log_structs = Enum.map(logs, &struct(Log, &1))
+
+    {count, log_structs}
   end
 end

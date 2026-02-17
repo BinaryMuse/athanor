@@ -49,8 +49,8 @@ defmodule Athanor.Experiments.Broadcasts do
     PubSub.broadcast(@pubsub, "experiments:run:#{run_id}", {:log_added, log})
   end
 
-  def logs_added(run_id, count) do
-    PubSub.broadcast(@pubsub, "experiments:run:#{run_id}", {:logs_added, count})
+  def logs_added(run_id, logs) when is_list(logs) do
+    PubSub.broadcast(@pubsub, "experiments:run:#{run_id}", {:logs_added, logs})
   end
 
   # --- Result Events ---
@@ -59,8 +59,8 @@ defmodule Athanor.Experiments.Broadcasts do
     PubSub.broadcast(@pubsub, "experiments:run:#{run_id}", {:result_added, result})
   end
 
-  def results_added(run_id, count) do
-    PubSub.broadcast(@pubsub, "experiments:run:#{run_id}", {:results_added, count})
+  def results_added(run_id, results) when is_list(results) do
+    PubSub.broadcast(@pubsub, "experiments:run:#{run_id}", {:results_added, results})
   end
 
   # --- Progress Events ---

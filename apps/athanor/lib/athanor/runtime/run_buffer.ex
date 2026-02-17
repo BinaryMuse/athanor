@@ -123,15 +123,16 @@ defmodule Athanor.Runtime.RunBuffer do
       log_entries = Enum.map(entries, fn {_key, data} -> data end)
 
       # Chunk to avoid PostgreSQL parameter limit (65535 max)
-      total_count =
+      # Collect all inserted log structs for broadcasting
+      all_logs =
         log_entries
         |> Enum.chunk_every(@max_logs_per_insert)
-        |> Enum.reduce(0, fn chunk, acc ->
-          {count, _} = Experiments.create_logs(state.run, chunk)
-          acc + count
+        |> Enum.flat_map(fn chunk ->
+          {_count, log_structs} = Experiments.create_logs(state.run, chunk)
+          log_structs
         end)
 
-      Broadcasts.logs_added(state.run_id, total_count)
+      Broadcasts.logs_added(state.run_id, all_logs)
     end
   end
 
@@ -143,15 +144,16 @@ defmodule Athanor.Runtime.RunBuffer do
       result_entries = Enum.map(entries, fn {_mono_time, data} -> data end)
 
       # Chunk to avoid PostgreSQL parameter limit
-      total_count =
+      # Collect all inserted result structs for broadcasting
+      all_results =
         result_entries
         |> Enum.chunk_every(@max_logs_per_insert)
-        |> Enum.reduce(0, fn chunk, acc ->
-          {count, _} = Experiments.create_results(state.run, chunk)
-          acc + count
+        |> Enum.flat_map(fn chunk ->
+          {_count, result_structs} = Experiments.create_results(state.run, chunk)
+          result_structs
         end)
 
-      Broadcasts.results_added(state.run_id, total_count)
+      Broadcasts.results_added(state.run_id, all_results)
     end
   end
 
