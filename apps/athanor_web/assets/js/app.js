@@ -29,6 +29,29 @@ const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute
 
 // Custom hooks
 const Hooks = {
+  ReconnectionTracker: {
+    mounted() {
+      this.attempts = 0
+      this.attemptInterval = null
+    },
+    disconnected() {
+      this.attempts = 0
+      // Count attempts every 2s as rough approximation
+      // Phoenix socket uses exponential backoff internally
+      this.attemptInterval = setInterval(() => {
+        this.attempts += 1
+        this.pushEvent("reconnecting", { attempt: this.attempts })
+      }, 2000)
+    },
+    reconnected() {
+      clearInterval(this.attemptInterval)
+      this.attemptInterval = null
+      this.pushEvent("reconnected", {})
+    },
+    destroyed() {
+      clearInterval(this.attemptInterval)
+    }
+  },
   AutoScroll: {
     mounted() {
       this.scrollToBottom()
