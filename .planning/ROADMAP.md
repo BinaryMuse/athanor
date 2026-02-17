@@ -61,10 +61,10 @@ Plans:
   2. User can toggle between tree view and raw JSON view
   3. New results appear in real-time as experiment produces them
   4. Nested data structures are navigable without horizontal scrolling
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 03-01: ResultsPanelComponent with tree view and JSON toggle
+- [ ] 03-01-PLAN.md — ResultsPanel component with recursive tree view and JSON toggle
 
 ### Phase 4: Run Page Layout and Status
 **Goal**: Users have a complete, polished run monitoring experience with status always visible
@@ -131,7 +131,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 |-------|----------------|--------|-----------|
 | 1. Visual Identity | 1/1 | ✓ Complete | 2026-02-17 |
 | 2. Log Display | 2/2 | ✓ Complete | 2026-02-17 |
-| 3. Results Display | 0/1 | Not started | - |
+| 3. Results Display | 0/1 | Planned | - |
 | 4. Run Layout | 0/1 | Not started | - |
 | 5. Config Forms | 0/1 | Not started | - |
 | 6. Instance Pages | 0/1 | Not started | - |
