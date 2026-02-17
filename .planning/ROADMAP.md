@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Visual Identity and Theme Foundation** - Establish design system and theme switching ✓
 - [x] **Phase 2: Run Page Log Display** - Virtualized log rendering for high-volume output ✓
-- [ ] **Phase 3: Run Page Results Display** - Structured results with tree view and JSON toggle
+- [x] **Phase 3: Run Page Results Display** - Structured results with tree view and JSON toggle ✓
 - [ ] **Phase 4: Run Page Layout and Status** - Complete run page assembly with sticky header
 - [ ] **Phase 5: Configuration Forms Polish** - Schema-driven form components
 - [ ] **Phase 6: Instance and Index Pages** - Experiment list and detail page polish
@@ -65,7 +65,7 @@ Plans:
 
 Plans:
 - [x] 03-01-PLAN.md — ResultsPanel component with recursive tree view and JSON toggle ✓
-- [ ] 03-02-PLAN.md — Gap closure: Lazy tree hydration for performance
+- [x] 03-02-PLAN.md — Gap closure: Lazy tree hydration for performance ✓
 
 ### Phase 4: Run Page Layout and Status
 **Goal**: Users have a complete, polished run monitoring experience with status always visible
@@ -133,7 +133,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 |-------|----------------|--------|-----------|
 | 1. Visual Identity | 1/1 | ✓ Complete | 2026-02-17 |
 | 2. Log Display | 2/2 | ✓ Complete | 2026-02-17 |
-| 3. Results Display | 1/2 | In Progress | - |
+| 3. Results Display | 2/2 | ✓ Complete | 2026-02-17 |
 | 4. Run Layout | 0/1 | Not started | - |
 | 5. Config Forms | 0/1 | Not started | - |
 | 6. Instance Pages | 0/1 | Not started | - |

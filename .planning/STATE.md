@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** The run page must display live logs and structured results clearly and performantly, even for experiments that produce thousands of log entries over hours of execution.
-**Current focus:** Phase 3 - Run Page Results Display
+**Current focus:** Phase 3 - Run Page Results Display - COMPLETE
 
 ## Current Position
 
 Phase: 3 of 6 (Run Page Results Display) - COMPLETE
-Plan: 1 of 1 in current phase - COMPLETE
-Status: Phase 3 plan 1 complete, ready for browser verification
-Last activity: 2026-02-17 - Phase 3 plan 1 executed
+Plan: 2 of 2 in current phase - COMPLETE
+Status: Phase 3 all plans complete, PERF-01 gap closed, ready for Phase 4
+Last activity: 2026-02-17 - Phase 3 plan 2 executed
 
-Progress: [####------] 50%
+Progress: [#####-----] 55%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
+- Total plans completed: 5
 - Average duration: ~2 min
-- Total execution time: ~6 min
+- Total execution time: ~8 min
 
 **By Phase:**
 
@@ -29,7 +29,7 @@ Progress: [####------] 50%
 |-------|-------|-------|----------|
 | 01-visual-identity-and-theme-foundation | 1/1 done | ~2 min | ~2 min |
 | 02-run-page-log-display | 2/2 done | ~5 min | ~2.5 min |
-| 03-run-page-results-display | 1/1 done | ~2 min | ~2 min |
+| 03-run-page-results-display | 2/2 done | ~4 min | ~2 min |
 
 **Recent Trend:**
 - Last 5 plans: -
@@ -60,6 +60,9 @@ Recent decisions affecting current work:
 - [Phase 03-run-page-results-display]: encode_json/1 helper using Jason.encode/2 (not bang) with [encoding error] fallback
 - [Phase 03-run-page-results-display]: First-level keys (depth=0) start expanded; depth > 0 starts collapsed
 - [Phase 03-run-page-results-display]: JS.toggle_class for client-side tree expand/collapse survives LiveView DOM patches
+- [Phase 03-run-page-results-display]: Function head pattern matching for lazy hydration: hydrated: true head renders full tree, fallback renders clickable stub
+- [Phase 03-run-page-results-display]: Map.put virtual hydrated field on Ecto struct: augmented before stream_insert, no schema change needed
+- [Phase 03-run-page-results-display]: stream_insert with same ID replaces stream item in-place: lazy hydration update mechanism
 
 ### Pending Todos
 
@@ -72,5 +75,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-17
-Stopped at: Completed 03-01-PLAN.md - ResultsPanel component created and wired in RunLive.Show
-Resume file: None - Phase 3 plan complete, ready for browser verification
+Stopped at: Completed 03-02-PLAN.md - Lazy tree hydration implemented, PERF-01 gap closed, Phase 3 complete
+Resume file: None - Phase 3 complete, ready for Phase 4
