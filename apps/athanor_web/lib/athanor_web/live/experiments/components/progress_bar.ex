@@ -11,7 +11,7 @@ defmodule AthanorWeb.Experiments.Components.ProgressBar do
   def progress_bar(assigns) do
     ~H"""
     <div :if={@status == "running" && @progress} class="w-full">
-      <div class="flex justify-between text-sm mb-1">
+      <div class="flex justify-between gap-4 text-sm mb-1">
         <span>{@progress.message || "Running..."}</span>
         <span>{@progress.current}/{@progress.total} ({@progress.percent}%)</span>
       </div>
