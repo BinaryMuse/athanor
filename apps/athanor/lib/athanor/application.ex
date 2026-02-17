@@ -10,9 +10,9 @@ defmodule Athanor.Application do
     children = [
       Athanor.Repo,
       {DNSCluster, query: Application.get_env(:athanor, :dns_cluster_query) || :ignore},
-      {Phoenix.PubSub, name: Athanor.PubSub}
-      # Start a worker by calling: Athanor.Worker.start_link(arg)
-      # {Athanor.Worker, arg}
+      {Phoenix.PubSub, name: Athanor.PubSub},
+      {Registry, keys: :unique, name: Athanor.Runtime.RunRegistry},
+      Athanor.Runtime.RunSupervisor
     ]
 
     Supervisor.start_link(children, strategy: :one_for_one, name: Athanor.Supervisor)

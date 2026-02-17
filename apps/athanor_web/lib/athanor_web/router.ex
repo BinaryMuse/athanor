@@ -18,6 +18,14 @@ defmodule AthanorWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+
+    # Experiment routes
+    live "/experiments", Experiments.InstanceLive.Index, :index
+    live "/experiments/new", Experiments.InstanceLive.New, :new
+    live "/experiments/:id", Experiments.InstanceLive.Show, :show
+
+    # Run routes
+    live "/runs/:id", Experiments.RunLive.Show, :show
   end
 
   # Other scopes may use custom stacks.
