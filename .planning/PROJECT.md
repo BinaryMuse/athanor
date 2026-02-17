@@ -14,24 +14,24 @@ The run page must display live logs and structured results clearly and performan
 
 <!-- Shipped and confirmed working (existing functionality) -->
 
-- ✓ Experiment instance CRUD — existing
-- ✓ Experiment configuration via dynamic schemas — existing
-- ✓ Run execution with real-time status updates — existing
-- ✓ Live log streaming via PubSub — existing
-- ✓ Live result key-value streaming — existing
-- ✓ Run cancellation — existing
+- Experiment instance CRUD — existing
+- Experiment configuration via dynamic schemas — existing
+- Run execution with real-time status updates — existing
+- Live log streaming via PubSub — existing
+- Live result key-value streaming — existing
+- Run cancellation — existing
 
 ### Active
 
 <!-- Current scope. Building toward these. -->
 
-- [ ] Scientific/technical visual identity with design patterns documented
-- [ ] Dark and light theme support with system preference detection
-- [ ] Run page: virtualized log display for high-volume output
-- [ ] Run page: structured results with tree view and JSON toggle
-- [ ] Experiment setup: polished configuration forms
-- [ ] Experiment show page: basic visual polish
-- [ ] Experiment index page: clean list view
+- [ ] VIS-01: Scientific/technical visual identity with design patterns documented
+- [ ] VIS-02: Dark and light theme support with system preference detection
+- [ ] LOG-01: Run page: virtualized log display for high-volume output
+- [ ] RES-01: Run page: structured results with tree view and JSON toggle
+- [ ] CFG-01: Experiment setup: polished configuration forms
+- [ ] IDX-01: Experiment show page: basic visual polish
+- [ ] IDX-02: Experiment index page: clean list view
 
 ### Out of Scope
 
@@ -67,5 +67,17 @@ The run page must display live logs and structured results clearly and performan
 | Virtualized logs | Thousands of entries would overwhelm DOM | — Pending |
 | Tree + JSON toggle for results | Structured data needs both exploration and raw views | — Pending |
 
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| VIS-01 | Phase 1 | Pending |
+| VIS-02 | Phase 1 | Pending |
+| LOG-01 | Phase 2 | Pending |
+| RES-01 | Phase 3 | Pending |
+| CFG-01 | Phase 5 | Pending |
+| IDX-01 | Phase 6 | Pending |
+| IDX-02 | Phase 6 | Pending |
+
 ---
-*Last updated: 2026-02-16 after initialization*
+*Last updated: 2026-02-16 after roadmap creation*
