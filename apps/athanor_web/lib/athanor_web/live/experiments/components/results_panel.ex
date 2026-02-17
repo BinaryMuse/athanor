@@ -2,6 +2,10 @@ defmodule AthanorWeb.Experiments.Components.ResultsPanel do
   @moduledoc """
   Results panel component displaying experiment run results
   as a collapsible tree with a raw JSON view toggle.
+
+  Result cards are lazy-hydrated: they render as lightweight stubs
+  initially, and full tree content is loaded on demand when the user
+  clicks to expand.
   """
 
   use Phoenix.Component
@@ -42,7 +46,7 @@ defmodule AthanorWeb.Experiments.Components.ResultsPanel do
 
   attr :result, :map, required: true
 
-  defp result_card(assigns) do
+  defp result_card(%{result: %{hydrated: true}} = assigns) do
     ~H"""
     <div>
       <div class="flex items-center justify-between mb-2">
@@ -67,6 +71,20 @@ defmodule AthanorWeb.Experiments.Components.ResultsPanel do
       <div id={"result-json-#{@result.id}"} class="hidden">
         <pre class="font-mono text-xs text-base-content/80 whitespace-pre-wrap break-words">{encode_json(@result.value)}</pre>
       </div>
+    </div>
+    """
+  end
+
+  defp result_card(assigns) do
+    ~H"""
+    <div
+      class="flex items-center gap-2 cursor-pointer hover:text-primary"
+      phx-click="hydrate_result"
+      phx-value-id={@result.id}
+    >
+      <span class="text-base-content/40 text-xs">></span>
+      <span class="font-medium text-sm font-mono text-base-content">{@result.key}</span>
+      <span class="text-base-content/40 text-xs ml-auto">Click to expand</span>
     </div>
     """
   end
