@@ -117,12 +117,21 @@ defmodule Athanor.Experiments do
     query =
       Log
       |> where([l], l.run_id == ^run.id)
-      |> order_by([l], asc: l.timestamp)
 
     query = if level, do: where(query, [l], l.level == ^level), else: query
-    query = if limit, do: limit(query, ^limit), else: query
 
-    Repo.all(query)
+    # When limit specified, get newest N logs then reverse for chronological display
+    if limit do
+      query
+      |> order_by([l], desc: l.timestamp)
+      |> limit(^limit)
+      |> Repo.all()
+      |> Enum.reverse()
+    else
+      query
+      |> order_by([l], asc: l.timestamp)
+      |> Repo.all()
+    end
   end
 
   def create_log(%Run{} = run, level, message, metadata \\ nil) do
