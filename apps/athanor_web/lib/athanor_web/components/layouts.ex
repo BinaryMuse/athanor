@@ -78,21 +78,13 @@ defmodule AthanorWeb.Layouts do
   This is a wide layout without the max-w-2xl constraint or navbar,
   suitable for a full-width run monitoring dashboard.
 
-  ## Examples
-
-      <Layouts.run flash={@flash}>
-        <div>Run dashboard content</div>
-      </Layouts.run>
-
+  Used via `layout: {AthanorWeb.Layouts, :run}` in mount.
   """
-  attr :flash, :map, required: true, doc: "the map of flash messages"
-  slot :inner_block, required: true
-
   def run(assigns) do
     ~H"""
     <.flash_group flash={@flash} />
     <div class="flex flex-col min-h-screen bg-base-100">
-      {render_slot(@inner_block)}
+      {@inner_content}
     </div>
     """
   end
