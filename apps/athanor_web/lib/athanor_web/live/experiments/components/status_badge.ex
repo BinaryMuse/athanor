@@ -16,7 +16,7 @@ defmodule AthanorWeb.Experiments.Components.StatusBadge do
   end
 
   defp badge_class("pending"), do: "badge badge-ghost"
-  defp badge_class("running"), do: "badge badge-info"
+  defp badge_class("running"), do: "badge badge-info animate-pulse"
   defp badge_class("completed"), do: "badge badge-success"
   defp badge_class("failed"), do: "badge badge-error"
   defp badge_class("cancelled"), do: "badge badge-warning"
