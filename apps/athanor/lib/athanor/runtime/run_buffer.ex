@@ -16,6 +16,9 @@ defmodule Athanor.Runtime.RunBuffer do
   alias Athanor.Experiments.Broadcasts
 
   @flush_interval_ms 100
+  # PostgreSQL has a 65535 parameter limit. Each log has ~7 fields.
+  # 1000 logs * 7 fields = 7000 params, well under the limit.
+  @max_logs_per_insert 1000
 
   defstruct [:run_id, :run, :logs_table, :results_table, :progress_table]
 
@@ -118,8 +121,17 @@ defmodule Athanor.Runtime.RunBuffer do
     if entries != [] do
       # entries are {mono_time, log_data} tuples, sorted by time
       log_entries = Enum.map(entries, fn {_key, data} -> data end)
-      {count, _} = Experiments.create_logs(state.run, log_entries)
-      Broadcasts.logs_added(state.run_id, count)
+
+      # Chunk to avoid PostgreSQL parameter limit (65535 max)
+      total_count =
+        log_entries
+        |> Enum.chunk_every(@max_logs_per_insert)
+        |> Enum.reduce(0, fn chunk, acc ->
+          {count, _} = Experiments.create_logs(state.run, chunk)
+          acc + count
+        end)
+
+      Broadcasts.logs_added(state.run_id, total_count)
     end
   end
 
