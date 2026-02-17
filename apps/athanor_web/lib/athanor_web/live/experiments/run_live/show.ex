@@ -191,6 +191,19 @@ defmodule AthanorWeb.Experiments.RunLive.Show do
   end
 
   @impl true
+  def handle_info({:results_added, _count}, socket) do
+    # Refresh results when batch added
+    results = Experiments.list_results(socket.assigns.run)
+
+    socket =
+      socket
+      |> assign(:result_count, length(results))
+      |> stream(:results, results, reset: true)
+
+    {:noreply, socket}
+  end
+
+  @impl true
   def handle_info({:progress_updated, progress}, socket) do
     {:noreply, assign(socket, :progress, progress)}
   end

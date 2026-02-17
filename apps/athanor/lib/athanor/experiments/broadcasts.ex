@@ -59,6 +59,10 @@ defmodule Athanor.Experiments.Broadcasts do
     PubSub.broadcast(@pubsub, "experiments:run:#{run_id}", {:result_added, result})
   end
 
+  def results_added(run_id, count) do
+    PubSub.broadcast(@pubsub, "experiments:run:#{run_id}", {:results_added, count})
+  end
+
   # --- Progress Events ---
 
   def progress_updated(run_id, progress) do

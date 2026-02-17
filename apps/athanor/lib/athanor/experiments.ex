@@ -88,11 +88,24 @@ defmodule Athanor.Experiments do
 
   # --- Results ---
 
-  def list_results(%Run{} = run) do
-    Result
-    |> where([r], r.run_id == ^run.id)
-    |> order_by([r], asc: r.inserted_at)
-    |> Repo.all()
+  def list_results(%Run{} = run, opts \\ []) do
+    limit = Keyword.get(opts, :limit)
+
+    query =
+      Result
+      |> where([r], r.run_id == ^run.id)
+
+    if limit do
+      query
+      |> order_by([r], desc: r.inserted_at)
+      |> limit(^limit)
+      |> Repo.all()
+      |> Enum.reverse()
+    else
+      query
+      |> order_by([r], asc: r.inserted_at)
+      |> Repo.all()
+    end
   end
 
   def get_results_by_key(%Run{} = run, key) do
@@ -106,6 +119,23 @@ defmodule Athanor.Experiments do
     %Result{}
     |> Result.changeset(%{run_id: run.id, key: key, value: value})
     |> Repo.insert()
+  end
+
+  def create_results(%Run{} = run, entries) when is_list(entries) do
+    now = DateTime.utc_now()
+
+    results =
+      Enum.map(entries, fn entry ->
+        %{
+          id: Ecto.UUID.generate(),
+          run_id: run.id,
+          key: entry.key,
+          value: entry.value,
+          inserted_at: now
+        }
+      end)
+
+    Repo.insert_all(Result, results)
   end
 
   # --- Logs ---

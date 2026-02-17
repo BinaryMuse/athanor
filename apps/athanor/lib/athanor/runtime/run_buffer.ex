@@ -139,13 +139,20 @@ defmodule Athanor.Runtime.RunBuffer do
     entries = :ets.tab2list(state.results_table)
     :ets.delete_all_objects(state.results_table)
 
-    # Insert results one by one (they have unique keys)
-    Enum.each(entries, fn {_mono_time, %{key: key, value: value}} ->
-      case Experiments.create_result(state.run, key, value) do
-        {:ok, result} -> Broadcasts.result_added(state.run_id, result)
-        _ -> :ok
-      end
-    end)
+    if entries != [] do
+      result_entries = Enum.map(entries, fn {_mono_time, data} -> data end)
+
+      # Chunk to avoid PostgreSQL parameter limit
+      total_count =
+        result_entries
+        |> Enum.chunk_every(@max_logs_per_insert)
+        |> Enum.reduce(0, fn chunk, acc ->
+          {count, _} = Experiments.create_results(state.run, chunk)
+          acc + count
+        end)
+
+      Broadcasts.results_added(state.run_id, total_count)
+    end
   end
 
   defp flush_progress(state) do
