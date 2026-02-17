@@ -146,6 +146,17 @@ defmodule AthanorWeb.Experiments.RunLive.Show do
   end
 
   @impl true
+  def handle_event("scroll_position", %{"near_bottom" => false}, socket) do
+    # User scrolled away from bottom — disable auto-scroll to respect their intent
+    {:noreply, assign(socket, :auto_scroll, false)}
+  end
+
+  def handle_event("scroll_position", %{"near_bottom" => true}, socket) do
+    # User scrolled back to bottom — let them re-enable manually via toggle
+    {:noreply, socket}
+  end
+
+  @impl true
   def handle_info({:run_updated, run}, socket) do
     {:noreply, assign(socket, :run, run)}
   end
