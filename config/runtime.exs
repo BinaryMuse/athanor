@@ -10,6 +10,14 @@ import Config
 config :athanor_web, AthanorWeb.Endpoint,
   http: [port: String.to_integer(System.get_env("PORT", "4000"))]
 
+config :req_llm,
+  provider_options: [
+    logprobs: true,
+    top_logprobs: 20,
+    openrouter_logprobs: true,
+    openrouter_top_logprobs: 20
+  ]
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||
