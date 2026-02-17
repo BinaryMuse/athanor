@@ -93,7 +93,7 @@ defmodule Athanor.Runtime.RunServer do
 
     case result do
       :ok ->
-        :ok
+        ensure_completed(state.ctx)
 
       {:ok, _} ->
         ensure_completed(state.ctx)
