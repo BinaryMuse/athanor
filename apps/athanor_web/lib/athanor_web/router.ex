@@ -20,10 +20,12 @@ defmodule AthanorWeb.Router do
     get "/", PageController, :home
 
     # Experiment routes
-    live "/experiments", Experiments.InstanceLive.Index, :index
-    live "/experiments/new", Experiments.InstanceLive.New, :new
-    live "/experiments/:id", Experiments.InstanceLive.Show, :show
-    live "/experiments/:id/edit", Experiments.InstanceLive.Edit, :edit
+    live_session :experiments, layout: {AthanorWeb.Layouts, :app} do
+      live "/experiments", Experiments.InstanceLive.Index, :index
+      live "/experiments/new", Experiments.InstanceLive.New, :new
+      live "/experiments/:id", Experiments.InstanceLive.Show, :show
+      live "/experiments/:id/edit", Experiments.InstanceLive.Edit, :edit
+    end
 
     # Run routes
     live "/runs/:id", Experiments.RunLive.Show, :show
