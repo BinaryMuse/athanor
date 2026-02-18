@@ -37,6 +37,34 @@ defmodule Athanor.Experiments do
     Repo.delete(instance)
   end
 
+  def list_instances_with_stats do
+    from(i in Instance,
+      left_join: r in assoc(i, :runs),
+      group_by: i.id,
+      select: %{
+        instance: i,
+        run_count: count(r.id),
+        last_run_at: max(r.inserted_at)
+      },
+      order_by: [desc: max(r.inserted_at), asc: i.name]
+    )
+    |> Repo.all()
+  end
+
+  def get_instance_stats(instance_id) do
+    from(i in Instance,
+      left_join: r in assoc(i, :runs),
+      where: i.id == ^instance_id,
+      group_by: i.id,
+      select: %{
+        instance: i,
+        run_count: count(r.id),
+        last_run_at: max(r.inserted_at)
+      }
+    )
+    |> Repo.one()
+  end
+
   # --- Runs ---
 
   def list_runs(%Instance{} = instance) do
@@ -83,6 +111,14 @@ defmodule Athanor.Experiments do
   def cancel_run(%Run{} = run) do
     run
     |> Run.cancel_changeset()
+    |> Repo.update()
+  end
+
+  def update_run_progress(%Run{} = run, progress) when is_map(progress) do
+    metadata = Map.put(run.metadata || %{}, "progress", progress)
+
+    run
+    |> Ecto.Changeset.change(%{metadata: metadata})
     |> Repo.update()
   end
 
@@ -162,13 +198,13 @@ defmodule Athanor.Experiments do
     # When limit specified, get newest N logs then reverse for chronological display
     if limit do
       query
-      |> order_by([l], desc: l.timestamp)
+      |> order_by([l], desc: l.timestamp, desc: l.id)
       |> limit(^limit)
       |> Repo.all()
       |> Enum.reverse()
     else
       query
-      |> order_by([l], asc: l.timestamp)
+      |> order_by([l], asc: l.timestamp, asc: l.id)
       |> Repo.all()
     end
   end
