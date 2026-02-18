@@ -33,6 +33,8 @@ const Hooks = {
     mounted() {
       this.schema = JSON.parse(this.el.dataset.schema)
       this.state = this.initStateFromSchema(this.schema)
+      this.touched = new Set()
+      this.errors = new Map()
       this.render()
       this.bindEvents()
     },
@@ -41,6 +43,8 @@ const Hooks = {
       if (event === "config_schema_changed") {
         this.schema = JSON.parse(payload.schema_json)
         this.state = this.initStateFromSchema(this.schema)
+        this.touched = new Set()
+        this.errors = new Map()
         this.render()
       }
     },
@@ -63,10 +67,66 @@ const Hooks = {
         }
       })
 
+      // Track blur for validation
+      this.el.addEventListener("blur", (e) => {
+        if (e.target.dataset.fieldPath) {
+          const path = e.target.dataset.fieldPath
+          this.touched.add(path)
+          this.validateField(path)
+          this.renderFieldError(path)
+        }
+      }, true)  // capture phase for blur
+
+      // List item click handlers
+      this.el.addEventListener("click", (e) => {
+        const addBtn = e.target.closest("[data-add-list-item]")
+        if (addBtn) {
+          e.preventDefault()
+          const path = JSON.parse(addBtn.dataset.addListItem)
+          this.addListItem(path)
+        }
+
+        const removeBtn = e.target.closest("[data-remove-list-item]")
+        if (removeBtn) {
+          e.preventDefault()
+          const {path, index} = JSON.parse(removeBtn.dataset.removeListItem)
+          this.removeListItem(path, index)
+        }
+
+        const moveBtn = e.target.closest("[data-move-item]")
+        if (moveBtn) {
+          e.preventDefault()
+          const {path, index, direction} = JSON.parse(moveBtn.dataset.moveItem)
+          this.moveListItem(path, index, direction)
+        }
+
+        const toggleBtn = e.target.closest("[data-toggle-item]")
+        if (toggleBtn) {
+          e.preventDefault()
+          this.toggleItemCollapse(toggleBtn)
+        }
+      })
+
       // Set hidden input before form submits
       const form = this.el.closest("form")
       if (form) {
-        form.addEventListener("submit", () => {
+        form.addEventListener("submit", (e) => {
+          // Mark all fields as touched
+          this.touchAllFields()
+
+          // Validate all
+          this.validateAll()
+
+          // If errors, prevent submit and show all errors
+          if (this.errors.size > 0) {
+            e.preventDefault()
+            this.renderAllErrors()
+            // Scroll to first error
+            const firstError = this.el.querySelector(".input-error, .select-error, .textarea-error")
+            if (firstError) firstError.scrollIntoView({behavior: "smooth", block: "center"})
+            return
+          }
+
           const hiddenInput = document.getElementById("config-json-input")
           if (hiddenInput) hiddenInput.value = JSON.stringify(this.state)
         })
@@ -118,14 +178,230 @@ const Hooks = {
         const value = this.getStateValue(fieldPath)
 
         if (definition.type === "list") {
-          // Plan 03 will handle lists - render placeholder
-          parent.appendChild(this.createListPlaceholder(name, definition, fieldPath))
+          parent.appendChild(this.renderListField(name, definition, fieldPath))
         } else if (definition.type === "group") {
           parent.appendChild(this.renderGroup(name, definition, fieldPath))
         } else {
           parent.appendChild(this.renderScalarField(name, definition, fieldPath, value))
         }
       }
+    },
+
+    renderListField(name, definition, path) {
+      const container = document.createElement("div")
+      container.className = "border border-base-300 rounded-lg p-4 mb-4"
+      container.dataset.listContainer = JSON.stringify(path)
+
+      // Header with label and add button
+      const header = document.createElement("div")
+      header.className = "flex items-center justify-between mb-4"
+
+      const label = document.createElement("span")
+      label.className = "font-semibold"
+      label.textContent = definition.label || this.humanize(name)
+      header.appendChild(label)
+
+      const addBtn = document.createElement("button")
+      addBtn.type = "button"
+      addBtn.className = "btn btn-sm btn-outline"
+      addBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg> Add`
+      addBtn.dataset.addListItem = JSON.stringify(path)
+      header.appendChild(addBtn)
+
+      container.appendChild(header)
+
+      if (definition.description) {
+        const desc = document.createElement("p")
+        desc.className = "text-sm text-base-content/60 mb-3"
+        desc.textContent = definition.description
+        container.appendChild(desc)
+      }
+
+      // Items container
+      const itemsContainer = document.createElement("div")
+      itemsContainer.className = "space-y-3"
+      itemsContainer.dataset.itemsContainer = JSON.stringify(path)
+
+      const items = this.getStateValue(path) || []
+      items.forEach((item, index) => {
+        itemsContainer.appendChild(this.renderListItem(definition.item_schema, path, index, items.length))
+      })
+
+      if (items.length === 0) {
+        const empty = document.createElement("p")
+        empty.className = "text-sm text-base-content/60 text-center py-4"
+        empty.textContent = "No items yet. Click \"Add\" to add one."
+        itemsContainer.appendChild(empty)
+      }
+
+      container.appendChild(itemsContainer)
+      return container
+    },
+
+    renderListItem(itemSchema, listPath, index, totalItems) {
+      const itemPath = [...listPath, index]
+
+      const card = document.createElement("div")
+      card.className = "card bg-base-200"
+      card.dataset.itemCard = JSON.stringify(itemPath)
+
+      const body = document.createElement("div")
+      body.className = "card-body p-3 gap-2"
+
+      // Header row with toggle, reorder, and remove buttons
+      const headerRow = document.createElement("div")
+      headerRow.className = "flex items-center gap-2"
+
+      // Toggle button with summary
+      const toggleBtn = document.createElement("button")
+      toggleBtn.type = "button"
+      toggleBtn.className = "flex-1 text-left text-sm font-medium flex items-center gap-2"
+      toggleBtn.dataset.toggleItem = JSON.stringify(itemPath)
+
+      const chevron = document.createElement("span")
+      chevron.className = "text-base-content/40 text-xs transition-transform"
+      chevron.dataset.chevron = "true"
+      chevron.textContent = "▼"
+      toggleBtn.appendChild(chevron)
+
+      const summary = document.createElement("span")
+      summary.textContent = `Item ${index + 1}`
+      toggleBtn.appendChild(summary)
+
+      headerRow.appendChild(toggleBtn)
+
+      // Reorder buttons
+      const reorderGroup = document.createElement("div")
+      reorderGroup.className = "flex gap-1"
+
+      const upBtn = document.createElement("button")
+      upBtn.type = "button"
+      upBtn.className = "btn btn-ghost btn-xs"
+      upBtn.disabled = index === 0
+      upBtn.innerHTML = "↑"
+      upBtn.dataset.moveItem = JSON.stringify({path: listPath, index, direction: "up"})
+      reorderGroup.appendChild(upBtn)
+
+      const downBtn = document.createElement("button")
+      downBtn.type = "button"
+      downBtn.className = "btn btn-ghost btn-xs"
+      downBtn.disabled = index === totalItems - 1
+      downBtn.innerHTML = "↓"
+      downBtn.dataset.moveItem = JSON.stringify({path: listPath, index, direction: "down"})
+      reorderGroup.appendChild(downBtn)
+
+      headerRow.appendChild(reorderGroup)
+
+      // Remove button
+      const removeBtn = document.createElement("button")
+      removeBtn.type = "button"
+      removeBtn.className = "btn btn-ghost btn-xs"
+      removeBtn.innerHTML = "✕"
+      removeBtn.dataset.removeListItem = JSON.stringify({path: listPath, index})
+      headerRow.appendChild(removeBtn)
+
+      body.appendChild(headerRow)
+
+      // Detail section (collapsible)
+      const detail = document.createElement("div")
+      detail.className = "space-y-2 pl-6 mt-2"
+      detail.dataset.itemDetail = "true"
+
+      // Render item schema fields
+      this.renderItemFields(detail, itemSchema.properties, itemPath)
+
+      body.appendChild(detail)
+      card.appendChild(body)
+
+      return card
+    },
+
+    renderItemFields(parent, properties, basePath) {
+      for (const {name, definition} of properties) {
+        const fieldPath = [...basePath, name]
+        const value = this.getStateValue(fieldPath)
+
+        if (definition.type === "list") {
+          // Nested list - recursive
+          parent.appendChild(this.renderListField(name, definition, fieldPath))
+        } else if (definition.type === "group") {
+          parent.appendChild(this.renderGroup(name, definition, fieldPath))
+        } else {
+          parent.appendChild(this.renderScalarField(name, definition, fieldPath, value))
+        }
+      }
+    },
+
+    addListItem(path) {
+      const list = this.getStateValue(path)
+      const definition = this.getDefinitionForPath(path)
+      const newItem = this.initStateFromSchema(definition.item_schema)
+      list.push(newItem)
+      this.render()
+    },
+
+    removeListItem(path, index) {
+      const list = this.getStateValue(path)
+      list.splice(index, 1)
+      this.render()
+    },
+
+    moveListItem(path, index, direction) {
+      const list = this.getStateValue(path)
+      const newIndex = direction === "up" ? index - 1 : index + 1
+      if (newIndex < 0 || newIndex >= list.length) return
+      const [item] = list.splice(index, 1)
+      list.splice(newIndex, 0, item)
+      this.render()
+    },
+
+    toggleItemCollapse(toggleBtn) {
+      const itemCard = toggleBtn.closest("[data-item-card]")
+      const detail = itemCard.querySelector("[data-item-detail]")
+      const chevron = toggleBtn.querySelector("[data-chevron]")
+
+      detail.classList.toggle("hidden")
+      chevron.textContent = detail.classList.contains("hidden") ? "▶" : "▼"
+    },
+
+    getDefinitionForPath(path) {
+      // Return the definition for the last segment of path
+      // Walk through schema following the path
+      const parentPath = path.slice(0, -1)
+      let parentSchema = this.schema
+      for (const key of parentPath) {
+        if (typeof key === "number") continue
+        const prop = parentSchema.properties.find(p => p.name === key)
+        if (!prop) return null
+        if (prop.definition.type === "list") {
+          parentSchema = prop.definition.item_schema
+        } else if (prop.definition.type === "group") {
+          parentSchema = prop.definition.sub_schema
+        }
+      }
+      const lastKey = path[path.length - 1]
+      if (typeof lastKey === "number") {
+        // Path ends in a numeric index, return the parent list's item_schema wrapper
+        // We need the list definition itself - walk path one more level up
+        const listPath = path.slice(0, -1)
+        const listParentPath = listPath.slice(0, -1)
+        let listParentSchema = this.schema
+        for (const key of listParentPath) {
+          if (typeof key === "number") continue
+          const prop = listParentSchema.properties.find(p => p.name === key)
+          if (!prop) return null
+          if (prop.definition.type === "list") {
+            listParentSchema = prop.definition.item_schema
+          } else if (prop.definition.type === "group") {
+            listParentSchema = prop.definition.sub_schema
+          }
+        }
+        const listKey = listPath[listPath.length - 1]
+        const listProp = listParentSchema.properties.find(p => p.name === listKey)
+        return listProp?.definition
+      }
+      const finalProp = parentSchema.properties.find(p => p.name === lastKey)
+      return finalProp?.definition
     },
 
     getStateValue(path) {
@@ -270,27 +546,145 @@ const Hooks = {
       return input
     },
 
-    createListPlaceholder(name, definition, path) {
-      const div = document.createElement("div")
-      div.className = "border border-base-300 rounded-lg p-4 mb-4"
-      div.dataset.listPath = JSON.stringify(path)
+    validateField(pathJson) {
+      const path = JSON.parse(pathJson)
+      const value = this.getStateValue(path)
+      const definition = this.getFieldDefinition(path)
 
-      const header = document.createElement("div")
-      header.className = "flex items-center justify-between mb-2"
+      if (!definition) return
 
-      const label = document.createElement("span")
-      label.className = "font-semibold"
-      label.textContent = definition.label || this.humanize(name)
-      header.appendChild(label)
+      // Required check
+      if (definition.required && (value === null || value === undefined || value === "")) {
+        this.errors.set(pathJson, "This field is required")
+        return
+      }
 
-      div.appendChild(header)
+      // Min/max for numbers
+      if ((definition.type === "integer" || definition.type === "number") && value !== null && value !== "") {
+        const num = Number(value)
+        if (definition.min !== undefined && num < definition.min) {
+          this.errors.set(pathJson, `Minimum value is ${definition.min}`)
+          return
+        }
+        if (definition.max !== undefined && num > definition.max) {
+          this.errors.set(pathJson, `Maximum value is ${definition.max}`)
+          return
+        }
+      }
 
-      const placeholder = document.createElement("p")
-      placeholder.className = "text-sm text-base-content/60"
-      placeholder.textContent = "List fields will be enabled in the next update."
-      div.appendChild(placeholder)
+      // Enum options check
+      if (definition.type === "enum" && definition.options && value) {
+        if (!definition.options.includes(value)) {
+          this.errors.set(pathJson, "Please select a valid option")
+          return
+        }
+      }
 
-      return div
+      // Clear error if valid
+      this.errors.delete(pathJson)
+    },
+
+    getFieldDefinition(path) {
+      let schema = this.schema
+      for (let i = 0; i < path.length; i++) {
+        const key = path[i]
+        if (typeof key === "number") {
+          // Skip numeric indices, we're already at item_schema level
+          continue
+        }
+        const prop = schema.properties.find(p => p.name === key)
+        if (!prop) return null
+
+        if (i === path.length - 1) {
+          return prop.definition
+        }
+
+        if (prop.definition.type === "list") {
+          schema = prop.definition.item_schema
+        } else if (prop.definition.type === "group") {
+          schema = prop.definition.sub_schema
+        }
+      }
+      return null
+    },
+
+    validateAll() {
+      this.errors.clear()
+      this.validateSchemaFields(this.schema, [])
+    },
+
+    validateSchemaFields(schema, basePath) {
+      for (const {name, definition} of schema.properties) {
+        const path = [...basePath, name]
+
+        if (definition.type === "list") {
+          const items = this.getStateValue(path) || []
+          items.forEach((_, index) => {
+            this.validateSchemaFields(definition.item_schema, [...path, index])
+          })
+        } else if (definition.type === "group") {
+          this.validateSchemaFields(definition.sub_schema, path)
+        } else {
+          const pathJson = JSON.stringify(path)
+          this.validateField(pathJson)
+        }
+      }
+    },
+
+    touchAllFields() {
+      this.touchSchemaFields(this.schema, [])
+    },
+
+    touchSchemaFields(schema, basePath) {
+      for (const {name, definition} of schema.properties) {
+        const path = [...basePath, name]
+
+        if (definition.type === "list") {
+          const items = this.getStateValue(path) || []
+          items.forEach((_, index) => {
+            this.touchSchemaFields(definition.item_schema, [...path, index])
+          })
+        } else if (definition.type === "group") {
+          this.touchSchemaFields(definition.sub_schema, path)
+        } else {
+          this.touched.add(JSON.stringify(path))
+        }
+      }
+    },
+
+    renderFieldError(pathJson) {
+      const input = this.el.querySelector(`[data-field-path='${pathJson}']`)
+      if (!input) return
+
+      const wrapper = input.closest(".fieldset")
+      if (!wrapper) return
+
+      // Remove existing error
+      const existingError = wrapper.querySelector(".field-error")
+      if (existingError) existingError.remove()
+
+      // Remove error styling from input
+      input.classList.remove("input-error", "select-error", "textarea-error", "checkbox-error")
+
+      // If touched and has error, show it
+      if (this.touched.has(pathJson) && this.errors.has(pathJson)) {
+        const errorClass = input.tagName === "SELECT" ? "select-error"
+          : input.tagName === "TEXTAREA" ? "textarea-error"
+          : input.type === "checkbox" ? "checkbox-error"
+          : "input-error"
+        input.classList.add(errorClass)
+
+        const errorEl = document.createElement("p")
+        errorEl.className = "field-error mt-1 flex gap-2 items-center text-sm text-error"
+        errorEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" /></svg><span>${this.errors.get(pathJson)}</span>`
+        wrapper.appendChild(errorEl)
+      }
+    },
+
+    renderAllErrors() {
+      for (const [pathJson] of this.errors) {
+        this.renderFieldError(pathJson)
+      }
     },
 
     humanize(str) {
