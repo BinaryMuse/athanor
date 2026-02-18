@@ -1,16 +1,14 @@
-defmodule SubstrateShift do
+defmodule SubstrateShift.Prelim do
   @moduledoc """
   Experiment to test if LLMs can detect a change in their underlying model.
   """
 
   use Athanor.Experiment
 
-  require SubstrateShift.Prelim
-
   @impl true
   def experiment do
     Experiment.Definition.new()
-    |> Experiment.Definition.name("substrate_shift")
+    |> Experiment.Definition.name("substrate_shift_prelim")
     |> Experiment.Definition.description(
       "Testing if LLMs can detect a change in their underlying model"
     )
@@ -21,13 +19,13 @@ defmodule SubstrateShift do
     model_pair_schema =
       Experiment.ConfigSchema.new()
       |> field(:model_a, :string,
-        default: "gpt-4o",
+        default: "anthropic/claude-opus-4.5",
         label: "Model A",
         description: "First model in the comparison pair",
         required: true
       )
       |> field(:model_b, :string,
-        default: "gpt-4o-mini",
+        default: "openai/gpt-4o-mini",
         label: "Model B",
         description: "Second model in the comparison pair",
         required: true
@@ -58,6 +56,6 @@ defmodule SubstrateShift do
 
   @impl true
   def run(ctx) do
-    SubstrateShift.Runner.run(ctx)
+    SubstrateShift.Prelim.Runner.run(ctx)
   end
 end
