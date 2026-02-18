@@ -11,6 +11,7 @@ defmodule Athanor.Application do
       Athanor.Repo,
       {DNSCluster, query: Application.get_env(:athanor, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Athanor.PubSub},
+      {Task.Supervisor, name: Athanor.TaskSupervisor},
       {Registry, keys: :unique, name: Athanor.Runtime.RunRegistry},
       {Registry, keys: :unique, name: Athanor.Runtime.RunBufferRegistry},
       Athanor.Runtime.RunSupervisor

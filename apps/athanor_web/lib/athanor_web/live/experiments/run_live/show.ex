@@ -29,11 +29,21 @@ defmodule AthanorWeb.Experiments.RunLive.Show do
     results = Experiments.list_results(run)
     hydrated_results = Enum.map(results, &Map.put(&1, :hydrated, false))
 
+    persisted_progress = get_in(run.metadata, ["progress"])
+
+    persisted_progress = %{
+      current: persisted_progress["current"],
+      message: persisted_progress["message"],
+      percent: persisted_progress["percent"],
+      total: persisted_progress["total"],
+      updated_at: persisted_progress["updated_at"]
+    }
+
     socket =
       socket
       |> assign(:run, run)
       |> assign(:instance, run.instance)
-      |> assign(:progress, nil)
+      |> assign(:progress, persisted_progress)
       |> assign(:active_tab, :logs)
       |> assign(:auto_scroll, true)
       |> assign(:log_count, length(logs))
@@ -52,11 +62,9 @@ defmodule AthanorWeb.Experiments.RunLive.Show do
   def render(assigns) do
     ~H"""
     <div class="flex flex-col min-h-screen" id="run-page" phx-hook="ReconnectionTracker">
-
       <%!-- Sticky header --%>
       <header class="sticky top-0 z-10 bg-base-100 border-b border-base-300 shadow-sm">
         <div class="px-4 sm:px-6 lg:px-8 py-3">
-
           <%!-- Breadcrumb row --%>
           <div class="flex items-center gap-2 text-sm text-base-content/60 mb-2">
             <.link navigate={~p"/experiments"} class="hover:text-base-content">Experiments</.link>
@@ -65,7 +73,7 @@ defmodule AthanorWeb.Experiments.RunLive.Show do
               {@instance.name}
             </.link>
             <span>/</span>
-            <span class="text-base-content">Run {short_id(@run.id)}</span>
+            <span class="text-base-content">Run {@run.id}</span>
           </div>
 
           <%!-- Status row --%>
@@ -74,7 +82,10 @@ defmodule AthanorWeb.Experiments.RunLive.Show do
 
             <span class="font-medium">{@instance.name}</span>
 
-            <span :if={format_elapsed(@run, @elapsed_seconds) != ""} class="text-sm text-base-content/60">
+            <span
+              :if={format_elapsed(@run, @elapsed_seconds) != ""}
+              class="text-sm text-base-content/60 w-[100px]"
+            >
               {format_elapsed(@run, @elapsed_seconds)}
             </span>
 
@@ -118,7 +129,6 @@ defmodule AthanorWeb.Experiments.RunLive.Show do
 
       <%!-- Tab bar + content --%>
       <div class="flex-1 flex flex-col overflow-hidden px-4 sm:px-6 lg:px-8">
-
         <%!-- Tab bar with daisyUI tabs --%>
         <div role="tablist" class="tabs tabs-border border-b border-base-300 mt-4">
           <button

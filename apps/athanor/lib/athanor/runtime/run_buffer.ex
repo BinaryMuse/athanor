@@ -161,6 +161,7 @@ defmodule Athanor.Runtime.RunBuffer do
     case :ets.lookup(state.progress_table, :current) do
       [{:current, progress}] ->
         :ets.delete_all_objects(state.progress_table)
+        Experiments.update_run_progress(state.run, progress)
         Broadcasts.progress_updated(state.run_id, progress)
       [] ->
         :ok
