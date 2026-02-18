@@ -1,6 +1,6 @@
 # Athanor
 
-Athanor is an experiment harness for AI research, built as an Elixir/Phoenix umbrella application. It provides a framework for defining, configuring, executing, and monitoring experiments that test AI models.
+Athanor is an experiment harness, built as an Elixir/Phoenix umbrella application. It provides a framework for defining, configuring, executing, and monitoring experiments. Anathor was designed for, but not limited to, experiments in AI research.
 
 ## Project Structure
 
