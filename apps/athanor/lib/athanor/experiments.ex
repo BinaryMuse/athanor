@@ -46,7 +46,7 @@ defmodule Athanor.Experiments do
         run_count: count(r.id),
         last_run_at: max(r.inserted_at),
         last_run_status: fragment(
-          "(SELECT status FROM runs WHERE instance_id = ? ORDER BY inserted_at DESC LIMIT 1)",
+          "(SELECT status FROM experiment_runs WHERE instance_id = ? ORDER BY inserted_at DESC LIMIT 1)",
           i.id
         )
       },
@@ -65,7 +65,7 @@ defmodule Athanor.Experiments do
         run_count: count(r.id),
         last_run_at: max(r.inserted_at),
         last_run_status: fragment(
-          "(SELECT status FROM runs WHERE instance_id = ? ORDER BY inserted_at DESC LIMIT 1)",
+          "(SELECT status FROM experiment_runs WHERE instance_id = ? ORDER BY inserted_at DESC LIMIT 1)",
           i.id
         )
       }
