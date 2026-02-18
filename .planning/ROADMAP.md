@@ -107,7 +107,7 @@ Plans:
   2. Experiment detail (show) page displays instance information clearly
   3. Navigation between pages is intuitive
   4. Visual styling matches established design system
-**Plans:** 4 plans (2 complete + 2 gap closure)
+**Plans:** 4/4 plans complete
 
 Plans:
 - [x] 06-01-PLAN.md — Backend preparation and global layout (aggregate queries, minimal navbar, edit route) ✓
@@ -141,7 +141,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 3. Results Display | 2/2 | ✓ Complete | 2026-02-17 |
 | 4. Run Layout | 1/1 | ✓ Complete | 2026-02-17 |
 | 5. Config Forms | 3/3 | ✓ Complete | 2026-02-18 |
-| 6. Instance Pages | 2/4 | Gap closure in progress | 2026-02-18 |
+| 6. Instance Pages | 2/4 | Complete    | 2026-02-18 |
 
 ---
 *Roadmap created: 2026-02-16*
