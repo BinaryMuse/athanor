@@ -95,7 +95,7 @@ Plans:
 
 Plans:
 - [x] 05-01-PLAN.md — ConfigSchema enhancement: group/4, field options, ordered properties ✓
-- [ ] 05-02-PLAN.md — ConfigFormComponent + ConfigFormHook with scalar field rendering
+- [x] 05-02-PLAN.md — ConfigFormComponent + ConfigFormHook with scalar field rendering ✓
 - [ ] 05-03-PLAN.md — List field rendering with collapsible items and validation
 
 ### Phase 6: Instance and Index Pages
@@ -137,7 +137,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 2. Log Display | 2/2 | ✓ Complete | 2026-02-17 |
 | 3. Results Display | 2/2 | ✓ Complete | 2026-02-17 |
 | 4. Run Layout | 1/1 | ✓ Complete | 2026-02-17 |
-| 5. Config Forms | 1/3 | In progress | - |
+| 5. Config Forms | 2/3 | In progress | - |
 | 6. Instance Pages | 0/1 | Not started | - |
 
 ---
