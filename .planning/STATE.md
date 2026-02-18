@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** The run page must display live logs and structured results clearly and performantly, even for experiments that produce thousands of log entries over hours of execution.
-**Current focus:** Phase 6 - Instance and Index Pages - All plans complete
+**Current focus:** Phase 6 - Instance and Index Pages - Gap closure plans in progress
 
 ## Current Position
 
 Phase: 6 of 6 (Instance and Index Pages)
-Plan: 2 of 2
-Status: Plan 06-02 complete (polished Index, Show, New, and Edit LiveView pages). Phase 6 fully complete.
-Last activity: 2026-02-18 - Completed 06-02
+Plan: 3 of 4
+Status: Plan 06-03 complete (wired live_session :experiments with Layouts.app layout for sticky header and padding on all instance pages). Plan 06-04 remaining.
+Last activity: 2026-02-18 - Completed 06-03
 
-Progress: [##########] 100%
+Progress: [#########.] 90%
 
 ## Performance Metrics
 
@@ -40,6 +40,7 @@ Progress: [##########] 100%
 *Updated after each plan completion*
 | Phase 06 P01 | 2 | 3 tasks | 3 files |
 | Phase 06 P02 | 4 | 3 tasks | 5 files |
+| Phase 06 P03 | 1 | 1 task | 1 file |
 
 ## Accumulated Context
 
@@ -89,6 +90,7 @@ Recent decisions affecting current work:
 - [Phase 06]: URL-synced tabs via handle_params/3 + patch links — no JS needed, browser history integration automatic
 - [Phase 06]: Edit page initial_values passed as JSON string to data-initial-values on ConfigFormComponent hook element
 - [Phase 06]: Sticky footer uses fixed bottom-0 bar with form= attribute to submit form from outside the form element
+- [Phase 06-03]: live_session :experiments with layout option is the clean router-level fix for all four instance pages simultaneously rather than per-LiveView mount overrides
 
 ### Pending Todos
 
@@ -101,5 +103,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed 06-02-PLAN.md
-Resume file: None - Phase 6 fully complete
+Stopped at: Completed 06-03-PLAN.md
+Resume file: .planning/phases/06-instance-and-index-pages/06-04-PLAN.md
