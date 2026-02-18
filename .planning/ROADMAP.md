@@ -107,11 +107,13 @@ Plans:
   2. Experiment detail (show) page displays instance information clearly
   3. Navigation between pages is intuitive
   4. Visual styling matches established design system
-**Plans:** 2/2 plans complete
+**Plans:** 4 plans (2 complete + 2 gap closure)
 
 Plans:
-- [ ] 06-01-PLAN.md — Backend preparation and global layout (aggregate queries, minimal navbar, edit route)
-- [ ] 06-02-PLAN.md — LiveView template refactoring (Index cards, Show tabs, New/Edit pages)
+- [x] 06-01-PLAN.md — Backend preparation and global layout (aggregate queries, minimal navbar, edit route) ✓
+- [x] 06-02-PLAN.md — LiveView template refactoring (Index cards, Show tabs, New/Edit pages) ✓
+- [ ] 06-03-PLAN.md — Gap closure: Wire Layouts.app via live_session for padding and sticky nav
+- [ ] 06-04-PLAN.md — Gap closure: ConfigFormHook initial values and index card status badge
 
 ## Requirements Mapping
 
@@ -139,7 +141,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 3. Results Display | 2/2 | ✓ Complete | 2026-02-17 |
 | 4. Run Layout | 1/1 | ✓ Complete | 2026-02-17 |
 | 5. Config Forms | 3/3 | ✓ Complete | 2026-02-18 |
-| 6. Instance Pages | 2/2 | Complete   | 2026-02-18 |
+| 6. Instance Pages | 2/4 | Gap closure in progress | 2026-02-18 |
 
 ---
 *Roadmap created: 2026-02-16*
