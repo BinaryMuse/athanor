@@ -23,6 +23,7 @@ defmodule AthanorWeb.Router do
     live "/experiments", Experiments.InstanceLive.Index, :index
     live "/experiments/new", Experiments.InstanceLive.New, :new
     live "/experiments/:id", Experiments.InstanceLive.Show, :show
+    live "/experiments/:id/edit", Experiments.InstanceLive.Edit, :edit
 
     # Run routes
     live "/runs/:id", Experiments.RunLive.Show, :show
