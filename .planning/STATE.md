@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** The run page must display live logs and structured results clearly and performantly, even for experiments that produce thousands of log entries over hours of execution.
-**Current focus:** Phase 5 - Configuration Forms Polish - Plan 2 COMPLETE
+**Current focus:** Phase 5 - Configuration Forms Polish - ALL PLANS COMPLETE
 
 ## Current Position
 
 Phase: 5 of 6 (Configuration Forms Polish)
-Plan: 2 complete, plan 3 remaining
-Status: Plan 05-02 complete (ConfigFormHook + ConfigFormComponent for scalar field rendering). Client-side JS hook manages form state; server decodes JSON on submit.
-Last activity: 2026-02-17 - Completed 05-02
+Plan: 3 complete, all plans done
+Status: Plan 05-03 complete (ConfigFormHook list rendering + inline validation). Full configuration forms with list add/remove/reorder/collapse and blur-tracked inline validation.
+Last activity: 2026-02-18 - Completed 05-03
 
-Progress: [########--] 80%
+Progress: [#########-] 90%
 
 ## Performance Metrics
 
@@ -31,7 +31,7 @@ Progress: [########--] 80%
 | 02-run-page-log-display | 2/2 done | ~5 min | ~2.5 min |
 | 03-run-page-results-display | 2/2 done | ~4 min | ~2 min |
 | 04-run-page-layout-and-status | 1/1 done | ~4 min | ~4 min |
-| 05-configuration-forms-polish | 2/3 done | ~10 min | ~5 min |
+| 05-configuration-forms-polish | 3/3 done | ~12 min | ~4 min |
 
 **Recent Trend:**
 - Last 5 plans: -
@@ -77,6 +77,9 @@ Recent decisions affecting current work:
 - [Phase 05-configuration-forms-polish]: ConfigFormHook manages DOM with phx-update=ignore — LiveView cannot overwrite JS-rendered fields
 - [Phase 05-configuration-forms-polish]: push_event config_schema_changed sent alongside assign so hook re-initializes on experiment type change
 - [Phase 05-configuration-forms-polish]: JS hook + hidden JSON input pattern — hook manages state/DOM, submits via single hidden field decoded by Jason on server
+- [Phase 05-configuration-forms-polish]: List rendering via renderListField/renderListItem with dataset attributes for event delegation via closest()
+- [Phase 05-configuration-forms-polish]: Full re-render on every list mutation (add/remove/move) — keeps state/DOM in sync without per-item listener rebinding
+- [Phase 05-configuration-forms-polish]: Touch-tracked validation — touched Set + errors Map, blur adds to touched, validateAll runs on submit to block if errors exist
 
 ### Pending Todos
 
@@ -88,6 +91,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-17
-Stopped at: Completed 05-02-PLAN.md
-Resume file: None - Ready to execute 05-03-PLAN.md
+Last session: 2026-02-18
+Stopped at: Completed 05-03-PLAN.md
+Resume file: None - Phase 05 complete, ready for Phase 06
