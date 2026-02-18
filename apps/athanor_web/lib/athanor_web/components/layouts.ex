@@ -31,7 +31,8 @@ defmodule AthanorWeb.Layouts do
     default: nil,
     doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
 
-  slot :inner_block, required: true
+  # inner_block when used as component: <Layouts.app>...</Layouts.app>
+  slot :inner_block
 
   def app(assigns) do
     ~H"""
@@ -46,7 +47,11 @@ defmodule AthanorWeb.Layouts do
 
     <main class="px-4 py-8 sm:px-6 lg:px-8">
       <div class="mx-auto max-w-4xl space-y-4">
-        {render_slot(@inner_block)}
+        <%= if assigns[:inner_content] do %>
+          <%= @inner_content %>
+        <% else %>
+          {render_slot(@inner_block)}
+        <% end %>
       </div>
     </main>
 
