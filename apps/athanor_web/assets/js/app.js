@@ -29,6 +29,276 @@ const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute
 
 // Custom hooks
 const Hooks = {
+  ConfigFormHook: {
+    mounted() {
+      this.schema = JSON.parse(this.el.dataset.schema)
+      this.state = this.initStateFromSchema(this.schema)
+      this.render()
+      this.bindEvents()
+    },
+
+    handleEvent(event, payload) {
+      if (event === "config_schema_changed") {
+        this.schema = JSON.parse(payload.schema_json)
+        this.state = this.initStateFromSchema(this.schema)
+        this.render()
+      }
+    },
+
+    bindEvents() {
+      // Track input changes
+      this.el.addEventListener("input", (e) => {
+        if (e.target.dataset.fieldPath) {
+          const path = JSON.parse(e.target.dataset.fieldPath)
+          const type = e.target.dataset.fieldType
+          this.updateState(path, this.coerceValue(e.target.value, type))
+        }
+      })
+
+      // Handle checkbox changes
+      this.el.addEventListener("change", (e) => {
+        if (e.target.type === "checkbox" && e.target.dataset.fieldPath) {
+          const path = JSON.parse(e.target.dataset.fieldPath)
+          this.updateState(path, e.target.checked)
+        }
+      })
+
+      // Set hidden input before form submits
+      const form = this.el.closest("form")
+      if (form) {
+        form.addEventListener("submit", () => {
+          const hiddenInput = document.getElementById("config-json-input")
+          if (hiddenInput) hiddenInput.value = JSON.stringify(this.state)
+        })
+      }
+    },
+
+    coerceValue(rawValue, type) {
+      if (type === "integer") return parseInt(rawValue, 10) || 0
+      if (type === "number") return parseFloat(rawValue) || 0
+      return rawValue
+    },
+
+    initStateFromSchema(schema) {
+      return schema.properties.reduce((acc, {name, definition}) => {
+        if (definition.type === "list") {
+          acc[name] = []
+        } else if (definition.type === "group") {
+          acc[name] = this.initStateFromSchema(definition.sub_schema)
+        } else {
+          acc[name] = definition.default ?? null
+        }
+        return acc
+      }, {})
+    },
+
+    updateState(path, value) {
+      let obj = this.state
+      for (let i = 0; i < path.length - 1; i++) {
+        obj = obj[path[i]]
+      }
+      obj[path[path.length - 1]] = value
+    },
+
+    render() {
+      // Keep the hidden input, render fields after it
+      const hiddenInput = this.el.querySelector("#config-json-input")
+      const fragment = document.createDocumentFragment()
+      this.renderProperties(fragment, this.schema.properties, [])
+
+      // Clear and re-add
+      this.el.innerHTML = ""
+      this.el.appendChild(hiddenInput.cloneNode())
+      this.el.appendChild(fragment)
+    },
+
+    renderProperties(parent, properties, path) {
+      for (const {name, definition} of properties) {
+        const fieldPath = [...path, name]
+        const value = this.getStateValue(fieldPath)
+
+        if (definition.type === "list") {
+          // Plan 03 will handle lists - render placeholder
+          parent.appendChild(this.createListPlaceholder(name, definition, fieldPath))
+        } else if (definition.type === "group") {
+          parent.appendChild(this.renderGroup(name, definition, fieldPath))
+        } else {
+          parent.appendChild(this.renderScalarField(name, definition, fieldPath, value))
+        }
+      }
+    },
+
+    getStateValue(path) {
+      let obj = this.state
+      for (const key of path) {
+        if (obj === undefined || obj === null) return undefined
+        obj = obj[key]
+      }
+      return obj
+    },
+
+    renderGroup(name, definition, path) {
+      const card = document.createElement("div")
+      card.className = "card bg-base-200 mb-4"
+
+      const body = document.createElement("div")
+      body.className = "card-body gap-4"
+
+      const title = document.createElement("h3")
+      title.className = "card-title text-base"
+      title.textContent = definition.label || this.humanize(name)
+      body.appendChild(title)
+
+      if (definition.description) {
+        const desc = document.createElement("p")
+        desc.className = "text-sm text-base-content/70"
+        desc.textContent = definition.description
+        body.appendChild(desc)
+      }
+
+      this.renderProperties(body, definition.sub_schema.properties, path)
+      card.appendChild(body)
+      return card
+    },
+
+    renderScalarField(name, definition, path, value) {
+      const wrapper = document.createElement("div")
+      wrapper.className = "fieldset mb-2"
+
+      const label = document.createElement("label")
+      const labelSpan = document.createElement("span")
+      labelSpan.className = "label mb-1"
+      labelSpan.textContent = definition.label || this.humanize(name)
+
+      if (definition.required) {
+        const asterisk = document.createElement("span")
+        asterisk.className = "text-error ml-1"
+        asterisk.textContent = "*"
+        labelSpan.appendChild(asterisk)
+      }
+      label.appendChild(labelSpan)
+
+      if (definition.description) {
+        const desc = document.createElement("p")
+        desc.className = "text-xs text-base-content/60 mb-1"
+        desc.textContent = definition.description
+        label.appendChild(desc)
+      }
+
+      const input = this.createInput(name, definition, path, value)
+      label.appendChild(input)
+      wrapper.appendChild(label)
+
+      return wrapper
+    },
+
+    createInput(name, definition, path, value) {
+      const pathJson = JSON.stringify(path)
+
+      // Boolean -> checkbox
+      if (definition.type === "boolean") {
+        const container = document.createElement("div")
+        container.className = "flex items-center gap-2"
+        const checkbox = document.createElement("input")
+        checkbox.type = "checkbox"
+        checkbox.className = "checkbox"
+        checkbox.checked = value === true
+        checkbox.dataset.fieldPath = pathJson
+        container.appendChild(checkbox)
+        return container
+      }
+
+      // Enum -> select
+      if (definition.type === "enum" && definition.options) {
+        const select = document.createElement("select")
+        select.className = "select w-full"
+        select.dataset.fieldPath = pathJson
+        select.dataset.fieldType = "string"
+
+        for (const opt of definition.options) {
+          const option = document.createElement("option")
+          option.value = opt
+          option.textContent = this.humanize(opt)
+          if (value === opt) option.selected = true
+          select.appendChild(option)
+        }
+        return select
+      }
+
+      // Textarea format
+      if (definition.format === "textarea") {
+        const textarea = document.createElement("textarea")
+        textarea.className = "textarea w-full"
+        textarea.value = value ?? ""
+        textarea.dataset.fieldPath = pathJson
+        textarea.dataset.fieldType = "string"
+        return textarea
+      }
+
+      // Integer/number
+      if (definition.type === "integer" || definition.type === "number") {
+        const input = document.createElement("input")
+        input.type = "number"
+        input.className = "input w-full"
+        input.value = value ?? ""
+        input.dataset.fieldPath = pathJson
+        input.dataset.fieldType = definition.type
+        if (definition.min !== undefined) input.min = definition.min
+        if (definition.max !== undefined) input.max = definition.max
+        if (definition.step !== undefined) input.step = definition.step
+        return input
+      }
+
+      // String with format hints
+      const input = document.createElement("input")
+      input.className = "input w-full"
+      input.value = value ?? ""
+      input.dataset.fieldPath = pathJson
+      input.dataset.fieldType = "string"
+
+      switch (definition.format) {
+        case "email":
+          input.type = "email"
+          break
+        case "url":
+          input.type = "url"
+          break
+        default:
+          input.type = "text"
+      }
+
+      return input
+    },
+
+    createListPlaceholder(name, definition, path) {
+      const div = document.createElement("div")
+      div.className = "border border-base-300 rounded-lg p-4 mb-4"
+      div.dataset.listPath = JSON.stringify(path)
+
+      const header = document.createElement("div")
+      header.className = "flex items-center justify-between mb-2"
+
+      const label = document.createElement("span")
+      label.className = "font-semibold"
+      label.textContent = definition.label || this.humanize(name)
+      header.appendChild(label)
+
+      div.appendChild(header)
+
+      const placeholder = document.createElement("p")
+      placeholder.className = "text-sm text-base-content/60"
+      placeholder.textContent = "List fields will be enabled in the next update."
+      div.appendChild(placeholder)
+
+      return div
+    },
+
+    humanize(str) {
+      return str
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, c => c.toUpperCase())
+    }
+  },
   ReconnectionTracker: {
     mounted() {
       this.attempts = 0
