@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** The run page must display live logs and structured results clearly and performantly, even for experiments that produce thousands of log entries over hours of execution.
-**Current focus:** Phase 6 - Instance and Index Pages - Plan 1 of 2 complete
+**Current focus:** Phase 6 - Instance and Index Pages - All plans complete
 
 ## Current Position
 
 Phase: 6 of 6 (Instance and Index Pages)
-Plan: 1 of 2
-Status: Plan 06-01 complete (aggregate stats queries, minimal Athanor navbar, edit route). Backend prep for instance and index pages.
-Last activity: 2026-02-18 - Completed 06-01
+Plan: 2 of 2
+Status: Plan 06-02 complete (polished Index, Show, New, and Edit LiveView pages). Phase 6 fully complete.
+Last activity: 2026-02-18 - Completed 06-02
 
-Progress: [##########] 95%
+Progress: [##########] 100%
 
 ## Performance Metrics
 
@@ -39,6 +39,7 @@ Progress: [##########] 95%
 
 *Updated after each plan completion*
 | Phase 06 P01 | 2 | 3 tasks | 3 files |
+| Phase 06 P02 | 4 | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,10 @@ Recent decisions affecting current work:
 - [Phase 06]: list_instances_with_stats/0 returns maps not structs so Index stream can use dom_id on item.instance.id
 - [Phase 06]: Minimal Athanor nav: text link to /experiments + theme toggle only, no Phoenix boilerplate links
 - [Phase 06]: max-w-4xl for app layout main content (was max-w-2xl) to support experiment card grid
+- [Phase 06]: stream_delete with custom dom_id requires wrapping plain struct in stats-shaped map so dom_id fn resolves correctly
+- [Phase 06]: URL-synced tabs via handle_params/3 + patch links — no JS needed, browser history integration automatic
+- [Phase 06]: Edit page initial_values passed as JSON string to data-initial-values on ConfigFormComponent hook element
+- [Phase 06]: Sticky footer uses fixed bottom-0 bar with form= attribute to submit form from outside the form element
 
 ### Pending Todos
 
@@ -96,5 +101,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed 06-01-PLAN.md
-Resume file: None - Plan 06-01 complete, ready for Plan 06-02
+Stopped at: Completed 06-02-PLAN.md
+Resume file: None - Phase 6 fully complete
