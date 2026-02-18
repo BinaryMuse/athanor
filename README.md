@@ -6,7 +6,7 @@
 
 </div>
 
-Athanor is an experiment harness, designed for (but not limited to) AI research, build as an Elixir/Phoenix umbrella application. It provides a framework for defining, configuring, executing, and monitoring experiments.
+Athanor is an experiment harness, designed for (but not limited to) AI research, built as an Elixir/Phoenix umbrella application. It provides a framework for defining, configuring, executing, and monitoring experiments.
 
 ## Project Structure
 
