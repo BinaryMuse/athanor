@@ -107,7 +107,7 @@ Plans:
   2. Experiment detail (show) page displays instance information clearly
   3. Navigation between pages is intuitive
   4. Visual styling matches established design system
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 06-01-PLAN.md — Backend preparation and global layout (aggregate queries, minimal navbar, edit route)
@@ -139,7 +139,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 3. Results Display | 2/2 | ✓ Complete | 2026-02-17 |
 | 4. Run Layout | 1/1 | ✓ Complete | 2026-02-17 |
 | 5. Config Forms | 3/3 | ✓ Complete | 2026-02-18 |
-| 6. Instance Pages | 0/2 | Not started | - |
+| 6. Instance Pages | 1/2 | In Progress|  |
 
 ---
 *Roadmap created: 2026-02-16*
