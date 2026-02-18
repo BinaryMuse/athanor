@@ -2,6 +2,7 @@ defmodule AthanorWeb.Experiments.Components.ConfigFormComponent do
   use Phoenix.Component
 
   attr :schema_json, :string, required: true
+  attr :initial_values, :string, default: nil
 
   def config_form(assigns) do
     ~H"""
@@ -9,6 +10,7 @@ defmodule AthanorWeb.Experiments.Components.ConfigFormComponent do
       id="config-form-hook"
       phx-hook="ConfigFormHook"
       data-schema={@schema_json}
+      data-initial-values={@initial_values}
       phx-update="ignore"
     >
       <input type="hidden" name="instance[configuration_json]" id="config-json-input" />

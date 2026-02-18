@@ -24,15 +24,16 @@ defmodule AthanorWeb.Experiments.InstanceLive.New do
   @impl true
   def render(assigns) do
     ~H"""
-    <.header>
-      New Experiment Instance
-      <:subtitle>
-        Configure and create a new experiment instance
-      </:subtitle>
-    </.header>
+    <div class="text-sm text-base-content/60 mb-4 flex items-center gap-2">
+      <.link navigate={~p"/experiments"} class="hover:text-base-content">Experiments</.link>
+      <span>/</span>
+      <span class="text-base-content">New</span>
+    </div>
 
-    <div class="mt-8 max-w-2xl">
-      <.form for={@form} phx-submit="save" class="space-y-6">
+    <h1 class="text-2xl font-semibold mb-6">New Experiment</h1>
+
+    <div class="pb-24">
+      <.form for={@form} id="new-instance-form" phx-submit="save" class="space-y-6">
         <div class="fieldset mb-2">
           <label class="label">
             <span class="label-text">Experiment Type</span>
@@ -69,13 +70,17 @@ defmodule AthanorWeb.Experiments.InstanceLive.New do
             <div class="divider">Configuration</div>
             <ConfigFormComponent.config_form schema_json={@config_schema_json} />
           </div>
-
-          <div class="flex gap-4 pt-4">
-            <.button type="submit" class="btn-primary">Create Instance</.button>
-            <.link navigate={~p"/experiments"} class="btn btn-ghost">Cancel</.link>
-          </div>
         </div>
       </.form>
+    </div>
+
+    <div class="fixed bottom-0 left-0 right-0 bg-base-100 border-t border-base-300 px-4 py-3">
+      <div class="mx-auto max-w-4xl flex justify-end gap-3">
+        <.link navigate={~p"/experiments"} class="btn btn-ghost">Cancel</.link>
+        <button type="submit" form="new-instance-form" class="btn btn-primary" disabled={is_nil(@selected_experiment)}>
+          Create Instance
+        </button>
+      </div>
     </div>
     """
   end
@@ -108,8 +113,12 @@ defmodule AthanorWeb.Experiments.InstanceLive.New do
   def handle_event("save", %{"instance" => params}, socket) do
     config =
       case params["configuration_json"] do
-        nil -> %{}
-        "" -> %{}
+        nil ->
+          %{}
+
+        "" ->
+          %{}
+
         json ->
           case Jason.decode(json) do
             {:ok, decoded} -> decoded
