@@ -59,7 +59,7 @@ Each task was committed atomically:
 
 1. **Task 1: Wrap experiment instance routes in live_session with app layout** - `9c8bea5` (feat)
 
-**Plan metadata:** (to be added after docs commit)
+**Plan metadata:** `3330899` (docs: complete live_session app layout wiring plan)
 
 ## Files Created/Modified
 - `apps/athanor_web/lib/athanor_web/router.ex` - Added live_session :experiments block with layout: {AthanorWeb.Layouts, :app} around the four experiment instance routes
@@ -85,3 +85,10 @@ None - no external service configuration required.
 ---
 *Phase: 06-instance-and-index-pages*
 *Completed: 2026-02-18*
+
+## Self-Check: PASSED
+
+- FOUND: `apps/athanor_web/lib/athanor_web/router.ex`
+- FOUND: `.planning/phases/06-instance-and-index-pages/06-03-SUMMARY.md`
+- FOUND commit: `9c8bea5` (feat(06-03): wrap experiment routes in live_session with app layout)
+- FOUND commit: `3330899` (docs(06-03): complete live_session app layout wiring plan)
