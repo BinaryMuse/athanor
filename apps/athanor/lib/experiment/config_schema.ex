@@ -86,4 +86,43 @@ defmodule Athanor.Experiment.ConfigSchema do
   def get_property(%__MODULE__{properties: props}, name) do
     Enum.find_value(props, fn {n, def} -> if n == name, do: def end)
   end
+
+  def to_serializable(%__MODULE__{} = schema) do
+    %{
+      "type" => to_string(schema.type),
+      "properties" => Enum.map(schema.properties, fn {name, def} ->
+        %{"name" => to_string(name), "definition" => serialize_field_def(def)}
+      end)
+    }
+  end
+
+  defp serialize_field_def(%{type: :group, sub_schema: sub} = def) do
+    def
+    |> Map.delete(:sub_schema)
+    |> Map.put(:sub_schema, to_serializable(sub))
+    |> stringify_field_def()
+  end
+
+  defp serialize_field_def(%{type: :list, item_schema: item} = def) do
+    def
+    |> Map.delete(:item_schema)
+    |> Map.put(:item_schema, to_serializable(item))
+    |> stringify_field_def()
+  end
+
+  defp serialize_field_def(def) do
+    stringify_field_def(def)
+  end
+
+  defp stringify_field_def(def) do
+    Map.new(def, fn {k, v} ->
+      key = to_string(k)
+      val = cond do
+        is_atom(v) -> to_string(v)
+        is_list(v) -> Enum.map(v, &to_string/1)
+        true -> v
+      end
+      {key, val}
+    end)
+  end
 end
