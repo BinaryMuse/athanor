@@ -3,6 +3,7 @@ defmodule AthanorWeb.Experiments.InstanceLive.Index do
 
   alias Athanor.Experiments
   alias Athanor.Runtime
+  alias AthanorWeb.Experiments.Components.StatusBadge
 
   @impl true
   def mount(_params, _session, socket) do
@@ -59,6 +60,7 @@ defmodule AthanorWeb.Experiments.InstanceLive.Index do
                     {item.instance.name}
                   </.link>
                 </h2>
+                <StatusBadge.status_badge :if={item.last_run_status} status={item.last_run_status} />
               </div>
               <p class="text-sm text-base-content/60">{module_name(item.instance.experiment_module)}</p>
               <p :if={item.instance.description} class="text-sm mt-1 line-clamp-2 text-base-content/80">
@@ -144,7 +146,7 @@ defmodule AthanorWeb.Experiments.InstanceLive.Index do
   @impl true
   def handle_info({:instance_deleted, instance}, socket) do
     # Wrap in stats-shaped map so the custom dom_id fn (item.instance.id) works correctly
-    fake_stats = %{instance: instance, run_count: 0, last_run_at: nil}
+    fake_stats = %{instance: instance, run_count: 0, last_run_at: nil, last_run_status: nil}
 
     socket =
       socket

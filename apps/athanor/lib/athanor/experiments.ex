@@ -44,7 +44,11 @@ defmodule Athanor.Experiments do
       select: %{
         instance: i,
         run_count: count(r.id),
-        last_run_at: max(r.inserted_at)
+        last_run_at: max(r.inserted_at),
+        last_run_status: fragment(
+          "(SELECT status FROM runs WHERE instance_id = ? ORDER BY inserted_at DESC LIMIT 1)",
+          i.id
+        )
       },
       order_by: [desc: max(r.inserted_at), asc: i.name]
     )
@@ -59,7 +63,11 @@ defmodule Athanor.Experiments do
       select: %{
         instance: i,
         run_count: count(r.id),
-        last_run_at: max(r.inserted_at)
+        last_run_at: max(r.inserted_at),
+        last_run_status: fragment(
+          "(SELECT status FROM runs WHERE instance_id = ? ORDER BY inserted_at DESC LIMIT 1)",
+          i.id
+        )
       }
     )
     |> Repo.one()
