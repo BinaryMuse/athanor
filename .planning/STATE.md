@@ -5,39 +5,20 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** The run page must display live logs and structured results clearly and performantly, even for experiments that produce thousands of log entries over hours of execution.
-**Current focus:** v1.0 complete — planning next milestone
+**Current focus:** v1.1 Results Performance
 
 ## Current Position
 
-Milestone: v1.0 Athanor UI — SHIPPED 2026-02-18
-Status: All 6 phases complete, 13 plans executed
-Next: `/gsd:new-milestone` to plan next version
-
-Progress: [##########] 100%
-
-## Performance Metrics
-
-**v1.0 Velocity:**
-- Total plans completed: 13
-- Phases: 6
-- Timeline: 3 days (2026-02-16 → 2026-02-18)
-
-**By Phase:**
-
-| Phase | Plans | Status |
-|-------|-------|--------|
-| 01-visual-identity-and-theme-foundation | 1/1 | ✓ |
-| 02-run-page-log-display | 2/2 | ✓ |
-| 03-run-page-results-display | 2/2 | ✓ |
-| 04-run-page-layout-and-status | 1/1 | ✓ |
-| 05-configuration-forms-polish | 3/3 | ✓ |
-| 06-instance-and-index-pages | 4/4 | ✓ |
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-02-18 — Milestone v1.1 started
 
 ## Accumulated Context
 
 ### Decisions
 
-All decisions logged in PROJECT.md Key Decisions table. Milestone decisions archived with phase summaries.
+All decisions logged in PROJECT.md Key Decisions table.
 
 ### Pending Todos
 
@@ -47,8 +28,18 @@ None.
 
 None.
 
+### Technical Context (v1.1)
+
+**Problem:** Results tab freezes on large experiments. Root cause identified:
+- Card-level lazy hydration works, but tree-level rendering is eager
+- Once hydrated, entire nested structure renders to DOM (even collapsed nodes)
+- Logprob data creates 10,000+ DOM nodes from one result click
+- No pagination on results — all load at mount
+
+**Approach:** True conditional rendering at tree node level + pagination.
+
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Milestone v1.0 complete
-Resume file: None — start fresh with /gsd:new-milestone
+Stopped at: Starting milestone v1.1
+Resume file: None — defining requirements

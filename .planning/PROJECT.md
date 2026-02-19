@@ -34,7 +34,21 @@ The run page must display live logs and structured results clearly and performan
 
 ### Active
 
-(None — planning next milestone)
+<!-- v1.1 Results Performance -->
+- [ ] Lazy tree node rendering for results display
+- [ ] Result pagination or virtualization for large experiments
+- [ ] Depth limiting for extremely deep nested structures
+- [ ] Accurate log count display (show true total, not capped count)
+
+## Current Milestone: v1.1 Results Performance
+
+**Goal:** Make the results tab performant for large experiments with deeply nested data (e.g., token-level logprobs).
+
+**Target features:**
+- Lazy tree node rendering — children only exist in DOM when parent is expanded
+- Result pagination/virtualization — don't render thousands of cards at once
+- Depth limiting — collapse extremely deep structures with "show more" affordance
+- Accurate log count — display true total even when capped at 1,000 rendered
 
 ### Out of Scope
 
@@ -69,4 +83,4 @@ The run page must display live logs and structured results clearly and performan
 | live_session layout | Multiple LiveViews need shared layout | ✓ Good — single router line applies to all |
 
 ---
-*Last updated: 2026-02-18 after v1.0 milestone*
+*Last updated: 2026-02-18 after starting v1.1 milestone*
