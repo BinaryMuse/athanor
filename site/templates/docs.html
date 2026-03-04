@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page.title }} | {{ config.title }} Docs{% endblock %}
+{% block description %}{{ page.description | default(value=config.description) }}{% endblock %}
+
+{% block body_class %}docs{% endblock %}
+
+{% block body %}
+<header class="site-header">
+    <nav class="nav-container">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <button onclick="toggleMobileNav()" class="mobile-nav-toggle" aria-label="Toggle navigation">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+            <a href="{{ get_url(path='/') }}" class="logo">
+                <span class="logo-text">Athanor</span>
+            </a>
+        </div>
+        <div class="nav-links">
+            <a href="{{ get_url(path='@/docs/_index.md') }}" class="active">Documentation</a>
+            <a href="{{ config.extra.github_repo }}" target="_blank" rel="noopener">GitHub</a>
+            <button onclick="toggleTheme()" class="theme-toggle" aria-label="Toggle theme">
+                <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            </button>
+        </div>
+    </nav>
+</header>
+
+<div class="mobile-nav-overlay" onclick="toggleMobileNav()"></div>
+
+<div class="docs-layout">
+    <aside class="docs-sidebar">
+        <nav class="docs-nav">
+            {% set docs_section = get_section(path="docs/_index.md") %}
+            {% for subsection in docs_section.subsections %}
+                {% set sub = get_section(path=subsection) %}
+                <div class="nav-group">
+                    <a href="{{ sub.permalink }}" class="nav-group-title {% if current_path is starting_with(sub.path) %}active{% endif %}">
+                        {{ sub.title }}
+                    </a>
+                    {% if sub.pages %}
+                    <ul class="nav-items">
+                        {% for doc_page in sub.pages %}
+                        <li>
+                            <a href="{{ doc_page.permalink }}" {% if current_path == doc_page.path %}class="active"{% endif %}>
+                                {{ doc_page.title }}
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </nav>
+    </aside>
+
+    <main class="docs-content">
+        <article>
+            <header class="doc-header">
+                <h1>{{ page.title }}</h1>
+                {% if page.description %}
+                <p class="doc-description">{{ page.description }}</p>
+                {% endif %}
+            </header>
+
+            <div class="doc-body prose">
+                {{ page.content | safe }}
+            </div>
+
+            {% if page.toc %}
+            <nav class="toc">
+                <h4>On this page</h4>
+                <ul>
+                {% for h2 in page.toc %}
+                    <li>
+                        <a href="{{ h2.permalink }}">{{ h2.title }}</a>
+                        {% if h2.children %}
+                        <ul>
+                            {% for h3 in h2.children %}
+                            <li><a href="{{ h3.permalink }}">{{ h3.title }}</a></li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+                </ul>
+            </nav>
+            {% endif %}
+        </article>
+    </main>
+</div>
+
+<footer class="site-footer">
+    <div class="footer-content">
+        <p>Athanor is open source software released under the MIT license.</p>
+        <p><a href="{{ config.extra.github_repo }}">GitHub</a></p>
+    </div>
+</footer>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function toggleMobileNav() {
+        document.querySelector('.docs-sidebar').classList.toggle('open');
+        document.querySelector('.mobile-nav-overlay').classList.toggle('open');
+    }
+
+    // Close mobile nav when clicking a link
+    document.querySelectorAll('.docs-sidebar a').forEach(link => {
+        link.addEventListener('click', () => {
+            document.querySelector('.docs-sidebar').classList.remove('open');
+            document.querySelector('.mobile-nav-overlay').classList.remove('open');
+        });
+    });
+</script>
+{% endblock %}

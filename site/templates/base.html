@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}{{ config.title }}{% endblock %}</title>
+    <meta
+      name="description"
+      content="{% block description %}{{ config.description }}{% endblock %}"
+    />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="{{ get_url(path='style.css') }}" />
+
+    <!-- Syntax highlighting themes - controlled by JS to match site theme -->
+    <link
+      id="giallo-dark"
+      rel="stylesheet"
+      type="text/css"
+      href="{{ get_url(path='giallo-dark.css') }}"
+    />
+    <link
+      id="giallo-light"
+      rel="stylesheet"
+      type="text/css"
+      href="{{ get_url(path='giallo-light.css') }}"
+      disabled
+    />
+
+    {% block head %}{% endblock %}
+  </head>
+  <body class="{% block body_class %}{% endblock %}">
+    {% block body %}{% endblock %}
+
+    <script>
+      // Update syntax highlighting theme to match site theme
+      function updateSyntaxTheme(isDark) {
+        document.getElementById('giallo-dark').disabled = !isDark;
+        document.getElementById('giallo-light').disabled = isDark;
+      }
+
+      // Theme toggle
+      function toggleTheme() {
+        document.documentElement.classList.toggle("dark");
+        const isDark = document.documentElement.classList.contains("dark");
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+        updateSyntaxTheme(isDark);
+      }
+
+      // Restore theme preference
+      if (localStorage.getItem("theme") === "light") {
+        document.documentElement.classList.remove("dark");
+        updateSyntaxTheme(false);
+      }
+    </script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

@@ -1,0 +1,31 @@
+# Athanor Documentation Site
+base_url = "https://binarymuse.github.io/athanor/"
+
+title = "Athanor"
+description = "A powerful experiment harness for systematic research"
+
+compile_sass = true
+build_search_index = true
+
+[search]
+include_title = true
+include_description = true
+include_path = true
+include_content = true
+
+[markdown]
+smart_punctuation = false
+
+[markdown.highlighting]
+style = "class"
+light_theme = "github-light"
+dark_theme = "github-dark"
+
+[slugify]
+paths = "on"
+taxonomies = "on"
+anchors = "on"
+
+[extra]
+author = "BinaryMuse"
+github_repo = "https://github.com/BinaryMuse/athanor"

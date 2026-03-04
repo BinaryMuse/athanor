@@ -1,0 +1,200 @@
+{% extends "base.html" %} {% block body_class %}landing{% endblock %} {% block
+body %}
+<header class="site-header">
+  <nav class="nav-container">
+    <a href="{{ get_url(path='/') }}" class="logo">
+      <span class="logo-text">Athanor</span>
+    </a>
+    <div class="nav-links">
+      <a href="{{ get_url(path='@/docs/_index.md') }}">Documentation</a>
+      <a href="{{ config.extra.github_repo }}" target="_blank" rel="noopener"
+        >GitHub</a
+      >
+      <button
+        onclick="toggleTheme()"
+        class="theme-toggle"
+        aria-label="Toggle theme"
+      >
+        <svg
+          class="icon-sun"
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg
+          class="icon-moon"
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="hero-content">
+      <img
+        src="{{ get_url(path='athanor.png') }}"
+        alt="Athanor"
+        class="hero-logo"
+      />
+      <p class="hero-tagline">{{ section.description }}</p>
+      <div class="hero-actions">
+        <a
+          href="{{ get_url(path='@/docs/getting-started/_index.md') }}"
+          class="btn btn-primary"
+          >Get Started</a
+        >
+        <a
+          href="{{ get_url(path='@/docs/_index.md') }}"
+          class="btn btn-secondary"
+          >Documentation</a
+        >
+      </div>
+    </div>
+    <div class="hero-visual">
+      <pre
+        class="code-sample"
+      ><code><span class="kw">defmodule</span> <span class="module">MyExperiment</span> <span class="kw">do</span>
+  <span class="kw">use</span> <span class="module">Athanor.Experiment</span>
+
+  <span class="attr">@impl</span> <span class="atom">true</span>
+  <span class="kw">def</span> <span class="fn">run</span>(ctx) <span class="kw">do</span>
+    config = <span class="module">Runtime</span>.config(ctx)
+
+    <span class="kw">for</span> i <span class="op">&lt;-</span> <span class="num">1</span>..config[<span class="str">"iterations"</span>] <span class="kw">do</span>
+      <span class="module">Runtime</span>.progress(ctx, i, config[<span class="str">"iterations"</span>])
+      result = run_trial(i, config)
+      <span class="module">Runtime</span>.result(ctx, <span class="str">"trial_#{i}"</span>, result)
+    <span class="kw">end</span>
+
+    <span class="module">Runtime</span>.complete(ctx)
+  <span class="kw">end</span>
+<span class="kw">end</span></code></pre>
+    </div>
+  </section>
+
+  <section class="features">
+    <h2>Built for Rigorous Research</h2>
+    <div class="feature-grid">
+      <div class="feature">
+        <div class="feature-icon">📐</div>
+        <h3>Code-Defined Experiments</h3>
+        <p>
+          Define experiments as Elixir modules with typed configuration schemas.
+          Version control your methodology alongside your code.
+        </p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🔄</div>
+        <h3>Reproducible Runs</h3>
+        <p>
+          Separate experiment instances from runs. Configuration snapshots
+          ensure you can always reproduce past results.
+        </p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">📊</div>
+        <h3>Real-Time Monitoring</h3>
+        <p>
+          Watch experiments execute with live progress, streaming logs, and
+          results—all through a responsive web interface.
+        </p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🔌</div>
+        <h3>Programmatic Access</h3>
+        <p>
+          Full MCP server integration with 15 tools. Automate experiment
+          workflows or integrate with your existing toolchain.
+        </p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">⚡</div>
+        <h3>Supervised Execution</h3>
+        <p>
+          Each run executes in isolated processes with proper supervision.
+          Failures are contained, cancellation is clean.
+        </p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🗄️</div>
+        <h3>Persistent Results</h3>
+        <p>
+          Structured results and logs persist to PostgreSQL. Query, analyze, and
+          export your data however you need.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="quickstart">
+    <h2>Quick Start</h2>
+    <div class="quickstart-steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h4>Clone and Setup</h4>
+          <pre><code>git clone https://github.com/BinaryMuse/athanor.git
+cd athanor
+mix setup</code></pre>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h4>Start the Server</h4>
+          <pre><code>iex -S mix phx.server</code></pre>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h4>Create Your First Experiment</h4>
+          <p>
+            Visit <code>localhost:4000</code> and create an instance from one of
+            the example experiments, or
+            <a
+              href="{{ get_url(path='@/docs/creating-experiments/_index.md') }}"
+              >write your own</a
+            >.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-content">
+    <p>Athanor is open source software released under the MIT license.</p>
+    <p><a href="{{ config.extra.github_repo }}">GitHub</a></p>
+  </div>
+</footer>
+{% endblock %}
