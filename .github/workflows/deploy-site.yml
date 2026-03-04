@@ -24,7 +24,7 @@ jobs:
         uses: getzola/github-pages@v1
         with:
           zola_version: "v0.22.1"
-          base_path: site
+          working_directory: ./site
 
   deploy:
     environment:
