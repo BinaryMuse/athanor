@@ -202,7 +202,7 @@ img {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 4rem;
-  align-items: center;
+  align-items: top;
   padding: 4rem 0 5rem;
   min-height: calc(80vh - var(--header-height));
 
