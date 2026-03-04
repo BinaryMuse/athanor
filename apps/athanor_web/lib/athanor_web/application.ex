@@ -11,6 +11,10 @@ defmodule AthanorWeb.Application do
       AthanorWeb.Telemetry,
       # Start a worker by calling: AthanorWeb.Worker.start_link(arg)
       # {AthanorWeb.Worker, arg},
+      # MCP Server Registry
+      Hermes.Server.Registry,
+      # MCP Server
+      {AthanorWeb.MCP.Server, transport: :streamable_http},
       # Start to serve requests, typically the last entry
       AthanorWeb.Endpoint
     ]

@@ -8,6 +8,14 @@
 
 Athanor is an experiment harness, designed for (but not limited to) AI research, built as an Elixir/Phoenix umbrella application. It provides a framework for defining, configuring, executing, and monitoring experiments.
 
+## Features
+
+- **Code-Defined Experiments** - Define experiments as versioned Elixir modules
+- **Real-Time Web UI** - Monitor running experiments with live logs, results, and progress
+- **Supervised Execution** - Each run executes in isolation with graceful cancellation
+- **MCP Server** - Programmatic access via Model Context Protocol for AI agents
+- **Flexible Results** - Store arbitrary structured data for later analysis
+
 ## Project Structure
 
 The core umbrella contains two applications:
@@ -201,6 +209,31 @@ end
 
 # Cancel a running experiment
 Athanor.Runtime.cancel_run(run)
+```
+
+## MCP Server
+
+Athanor includes a Model Context Protocol (MCP) server that allows AI agents to programmatically manage experiments, runs, logs, and results. The server exposes 15 tools for complete experiment lifecycle management.
+
+**Endpoint**: `http://localhost:4000/mcp`
+
+**Available Operations**:
+- List, create, and update experiments
+- Discover available experiment modules and their schemas
+- Start, monitor, and cancel runs
+- Query logs and results
+
+For detailed documentation on all available tools and usage examples, see [docs/MCP_SERVER.md](docs/MCP_SERVER.md).
+
+### Quick Example
+
+```bash
+# Connect an MCP client to the server
+# The client can then call tools like:
+# - list_experiments
+# - create_experiment
+# - start_run
+# - get_run_logs
 ```
 
 ## Analyzing Results

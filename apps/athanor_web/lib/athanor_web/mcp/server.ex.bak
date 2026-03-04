@@ -1,0 +1,560 @@
+defmodule AthanorWeb.MCP.Server do
+  @moduledoc """
+  MCP (Model Context Protocol) server for Athanor.
+
+  Provides tools for managing experiments, runs, logs, and results.
+  """
+
+  use Hermes.Server,
+    name: "Athanor",
+    version: "0.1.0",
+    capabilities: [:tools]
+
+  alias Athanor.Experiments
+  alias Athanor.Experiments.Discovery
+  alias Athanor.Runtime
+  alias Hermes.Server.Response
+
+  require Logger
+
+  @impl true
+  def init(_client_info, frame) do
+    {:ok,
+     frame
+     |> register_experiment_tools()
+     |> register_module_tools()
+     |> register_run_tools()
+     |> register_log_and_result_tools()}
+  end
+
+  # ============================================================================
+  # Experiment Management Tools
+  # ============================================================================
+
+  @impl true
+  def handle_tool_call("list_experiments", _params, frame) do
+    instances_with_stats = Experiments.list_instances_with_stats()
+
+    result =
+      Enum.map(instances_with_stats, fn item ->
+        instance = item.instance
+        %{
+          id: instance.id,
+          name: instance.name,
+          description: instance.description,
+          experiment_module: instance.experiment_module,
+          configuration: instance.configuration,
+          stats: %{
+            run_count: item.run_count,
+            last_run_at: item.last_run_at,
+            last_run_status: item.last_run_status
+          },
+          inserted_at: instance.inserted_at,
+          updated_at: instance.updated_at
+        }
+      end)
+
+    {:reply, result, frame}
+  end
+
+  @impl true
+  def handle_tool_call("get_experiment", %{id: id}, frame) do
+    case Experiments.get_instance_stats(id) do
+      nil ->
+        {:error, "Experiment not found", frame}
+
+      item ->
+        instance = item.instance
+
+        result = %{
+          id: instance.id,
+          name: instance.name,
+          description: instance.description,
+          experiment_module: instance.experiment_module,
+          configuration: instance.configuration,
+          stats: %{
+            run_count: item.run_count,
+            last_run_at: item.last_run_at,
+            last_run_status: item.last_run_status
+          },
+          inserted_at: instance.inserted_at,
+          updated_at: instance.updated_at
+        }
+
+        {:reply, result, frame}
+    end
+  end
+
+  @impl true
+  def handle_tool_call("create_experiment", params, frame) do
+    attrs = %{
+      name: params.name,
+      experiment_module: params.experiment_module,
+      description: Map.get(params, :description),
+      configuration: Map.get(params, :configuration, %{})
+    }
+
+    case Experiments.create_instance(attrs) do
+      {:ok, instance} ->
+        result = %{
+          id: instance.id,
+          name: instance.name,
+          description: instance.description,
+          experiment_module: instance.experiment_module,
+          configuration: instance.configuration,
+          inserted_at: instance.inserted_at,
+          updated_at: instance.updated_at
+        }
+
+        {:reply, result, frame}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        errors = format_changeset_errors(changeset)
+        {:error, "Validation failed: #{errors}", frame}
+
+      {:error, reason} ->
+        {:error, "Failed to create experiment: #{inspect(reason)}", frame}
+    end
+  end
+
+  @impl true
+  def handle_tool_call("update_experiment", params, frame) do
+    case Experiments.get_instance(params.id) do
+      nil ->
+        {:error, "Experiment not found", frame}
+
+      instance ->
+        attrs =
+          params
+          |> Map.take([:name, :description, :configuration])
+          |> Enum.reject(fn {_k, v} -> is_nil(v) end)
+          |> Map.new()
+
+        case Experiments.update_instance(instance, attrs) do
+          {:ok, updated_instance} ->
+            result = %{
+              id: updated_instance.id,
+              name: updated_instance.name,
+              description: updated_instance.description,
+              experiment_module: updated_instance.experiment_module,
+              configuration: updated_instance.configuration,
+              updated_at: updated_instance.updated_at
+            }
+
+            {:reply, result, frame}
+
+          {:error, %Ecto.Changeset{} = changeset} ->
+            errors = format_changeset_errors(changeset)
+            {:error, "Validation failed: #{errors}", frame}
+
+          {:error, reason} ->
+            {:error, "Failed to update experiment: #{inspect(reason)}", frame}
+        end
+    end
+  end
+
+  # ============================================================================
+  # Experiment Module Discovery Tools
+  # ============================================================================
+
+  @impl true
+  def handle_tool_call("list_available_modules", _params, frame) do
+    modules = Discovery.list_experiments()
+
+    result =
+      Enum.map(modules, fn {module, definition} ->
+        %{
+          module: to_string(module),
+          name: definition.name,
+          description: definition.description,
+          has_config_schema: not is_nil(definition.configuration_schema)
+        }
+      end)
+
+    {:reply, result, frame}
+  end
+
+  @impl true
+  def handle_tool_call("get_config_schema", %{experiment_module: module_string}, frame) do
+    case Discovery.get_config_schema(module_string) do
+      {:ok, schema} ->
+        {:reply, schema, frame}
+
+      {:error, :module_not_found} ->
+        {:error, "Module not found: #{module_string}", frame}
+
+      {:error, :not_an_experiment} ->
+        {:error, "Module does not implement Athanor.Experiment.Schema: #{module_string}",
+         frame}
+    end
+  end
+
+  @impl true
+  def handle_tool_call("validate_config", %{experiment_module: module_string, configuration: config}, frame) do
+    case Discovery.get_config_schema(module_string) do
+      {:ok, schema} ->
+        case validate_against_schema(config, schema) do
+          :ok ->
+            {:reply, %{valid: true, message: "Configuration is valid"}, frame}
+
+          {:error, errors} ->
+            {:reply, %{valid: false, errors: errors}, frame}
+        end
+
+      {:error, :module_not_found} ->
+        {:error, "Module not found: #{module_string}", frame}
+
+      {:error, :not_an_experiment} ->
+        {:error, "Module does not implement Athanor.Experiment.Schema: #{module_string}",
+         frame}
+    end
+  end
+
+  # ============================================================================
+  # Run Management Tools
+  # ============================================================================
+
+  @impl true
+  def handle_tool_call("list_runs", %{experiment_id: experiment_id}, frame) do
+    case Experiments.get_instance(experiment_id) do
+      nil ->
+        {:error, "Experiment not found", frame}
+
+      instance ->
+        runs = Experiments.list_runs(instance)
+
+        result =
+          Enum.map(runs, fn run ->
+            %{
+              id: run.id,
+              status: run.status,
+              started_at: run.started_at,
+              completed_at: run.completed_at,
+              error: run.error,
+              metadata: run.metadata,
+              inserted_at: run.inserted_at
+            }
+          end)
+
+        {:reply, result, frame}
+    end
+  end
+
+  @impl true
+  def handle_tool_call("get_run", %{id: id}, frame) do
+    case Experiments.get_run(id) do
+      nil ->
+        {:error, "Run not found", frame}
+
+      run ->
+        result = %{
+          id: run.id,
+          instance_id: run.instance_id,
+          status: run.status,
+          started_at: run.started_at,
+          completed_at: run.completed_at,
+          error: run.error,
+          metadata: run.metadata,
+          inserted_at: run.inserted_at,
+          updated_at: run.updated_at
+        }
+
+        {:reply, result, frame}
+    end
+  end
+
+  @impl true
+  def handle_tool_call("start_run", %{experiment_id: experiment_id}, frame) do
+    case Experiments.get_instance(experiment_id) do
+      nil ->
+        {:error, "Experiment not found", frame}
+
+      instance ->
+        case Runtime.start_run(instance) do
+          {:ok, run} ->
+            result = %{
+              id: run.id,
+              instance_id: run.instance_id,
+              status: run.status,
+              started_at: run.started_at,
+              inserted_at: run.inserted_at
+            }
+
+            {:reply, result, frame}
+
+          {:error, reason} ->
+            {:error, "Failed to start run: #{inspect(reason)}", frame}
+        end
+    end
+  end
+
+  @impl true
+  def handle_tool_call("cancel_run", %{id: id}, frame) do
+    case Experiments.get_run(id) do
+      nil ->
+        {:error, "Run not found", frame}
+
+      run ->
+        if run.status == "running" do
+          case Runtime.cancel_run(run) do
+            {:ok, cancelled_run} ->
+              result = %{
+                id: cancelled_run.id,
+                status: cancelled_run.status,
+                completed_at: cancelled_run.completed_at
+              }
+
+              {:reply, result, frame}
+
+            {:error, reason} ->
+              {:error, "Failed to cancel run: #{inspect(reason)}", frame}
+          end
+        else
+          {:error, "Run is not running (current status: #{run.status})", frame}
+        end
+    end
+  end
+
+  # ============================================================================
+  # Logs and Results Tools
+  # ============================================================================
+
+  @impl true
+  def handle_tool_call("get_run_logs", params, frame) do
+    case Experiments.get_run(params.run_id) do
+      nil ->
+        {:error, "Run not found", frame}
+
+      run ->
+        limit = Map.get(params, :limit, 100)
+        level = Map.get(params, :level)
+
+        logs = Experiments.list_logs(run, level: level, limit: limit)
+
+        result =
+          Enum.map(logs, fn log ->
+            %{
+              id: log.id,
+              level: log.level,
+              message: log.message,
+              metadata: log.metadata,
+              timestamp: log.timestamp
+            }
+          end)
+
+        {:reply, result, frame}
+    end
+  end
+
+  @impl true
+  def handle_tool_call("list_results", params, frame) do
+    case Experiments.get_run(params.run_id) do
+      nil ->
+        {:error, "Run not found", frame}
+
+      run ->
+        limit = Map.get(params, :limit)
+        results = Experiments.list_results(run, limit: limit)
+
+        result =
+          Enum.map(results, fn res ->
+            %{
+              id: res.id,
+              key: res.key,
+              value: res.value,
+              inserted_at: res.inserted_at
+            }
+          end)
+
+        {:reply, result, frame}
+    end
+  end
+
+  @impl true
+  def handle_tool_call("get_result_details", %{run_id: run_id, key: key}, frame) do
+    case Experiments.get_run(run_id) do
+      nil ->
+        {:error, "Run not found", frame}
+
+      run ->
+        case Experiments.get_results_by_key(run, key) do
+          [] ->
+            {:error, "No result found with key: #{key}", frame}
+
+          results ->
+            result =
+              Enum.map(results, fn res ->
+                %{
+                  id: res.id,
+                  key: res.key,
+                  value: res.value,
+                  inserted_at: res.inserted_at
+                }
+              end)
+
+            {:reply, result, frame}
+        end
+    end
+  end
+
+  # ============================================================================
+  # Tool Registration
+  # ============================================================================
+
+  defp register_experiment_tools(frame) do
+    frame
+    |> register_tool("list_experiments",
+      description: "List all experiment instances with their statistics",
+      input_schema: %{}
+    )
+    |> register_tool("get_experiment",
+      description: "Get details for a specific experiment instance",
+      input_schema: %{
+        id: {:required, :string, description: "Experiment instance ID"}
+      }
+    )
+    |> register_tool("create_experiment",
+      description: "Create a new experiment instance",
+      input_schema: %{
+        name: {:required, :string, description: "Human-readable name for the experiment"},
+        experiment_module:
+          {:required, :string,
+           description:
+             "Fully-qualified module name implementing Athanor.Experiment.Schema"},
+        description: {:optional, :string, description: "Optional description of the experiment"},
+        configuration:
+          {:optional, :map,
+           description: "Configuration parameters as a map (must match the module's schema)"}
+      }
+    )
+    |> register_tool("update_experiment",
+      description: "Update an experiment instance's configuration or metadata",
+      input_schema: %{
+        id: {:required, :string, description: "Experiment instance ID"},
+        name: {:optional, :string, description: "New name for the experiment"},
+        description: {:optional, :string, description: "New description"},
+        configuration: {:optional, :map, description: "New configuration parameters"}
+      }
+    )
+  end
+
+  defp register_module_tools(frame) do
+    frame
+    |> register_tool("list_available_modules",
+      description: "List all available experiment module types that can be instantiated",
+      input_schema: %{}
+    )
+    |> register_tool("get_config_schema",
+      description: "Get the configuration schema for a specific experiment module",
+      input_schema: %{
+        experiment_module: {:required, :string, description: "Fully-qualified module name"}
+      }
+    )
+    |> register_tool("validate_config",
+      description: "Validate a configuration against an experiment module's schema",
+      input_schema: %{
+        experiment_module: {:required, :string, description: "Fully-qualified module name"},
+        configuration: {:required, :map, description: "Configuration to validate"}
+      }
+    )
+  end
+
+  defp register_run_tools(frame) do
+    frame
+    |> register_tool("list_runs",
+      description: "List all runs for a specific experiment instance",
+      input_schema: %{
+        experiment_id: {:required, :string, description: "Experiment instance ID"}
+      }
+    )
+    |> register_tool("get_run",
+      description: "Get details for a specific run",
+      input_schema: %{
+        id: {:required, :string, description: "Run ID"}
+      }
+    )
+    |> register_tool("start_run",
+      description: "Create and start a new run for an experiment instance",
+      input_schema: %{
+        experiment_id: {:required, :string, description: "Experiment instance ID"}
+      }
+    )
+    |> register_tool("cancel_run",
+      description: "Cancel a running run",
+      input_schema: %{
+        id: {:required, :string, description: "Run ID"}
+      }
+    )
+  end
+
+  defp register_log_and_result_tools(frame) do
+    frame
+    |> register_tool("get_run_logs",
+      description: "Fetch the last N logs from a run, optionally filtered by level",
+      input_schema: %{
+        run_id: {:required, :string, description: "Run ID"},
+        limit:
+          {:optional, :integer, description: "Maximum number of logs to return (default: 100)"},
+        level:
+          {:optional, :string, description: "Filter by log level (debug, info, warn, error)"}
+      }
+    )
+    |> register_tool("list_results",
+      description: "Query an overview of results for a run",
+      input_schema: %{
+        run_id: {:required, :string, description: "Run ID"},
+        limit: {:optional, :integer, description: "Maximum number of results to return"}
+      }
+    )
+    |> register_tool("get_result_details",
+      description: "Get advanced details for a specific result by key",
+      input_schema: %{
+        run_id: {:required, :string, description: "Run ID"},
+        key: {:required, :string, description: "Result key to lookup"}
+      }
+    )
+  end
+
+  # ============================================================================
+  # Helper Functions
+  # ============================================================================
+
+  defp format_changeset_errors(changeset) do
+    Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
+      Enum.reduce(opts, msg, fn {key, value}, acc ->
+        String.replace(acc, "%{#{key}}", to_string(value))
+      end)
+    end)
+    |> Enum.map(fn {field, errors} ->
+      "#{field}: #{Enum.join(errors, ", ")}"
+    end)
+    |> Enum.join("; ")
+  end
+
+  defp validate_against_schema(_config, nil) do
+    :ok
+  end
+
+  defp validate_against_schema(config, schema) when is_map(schema) do
+    required_fields = Map.get(schema, "required", [])
+
+    errors =
+      Enum.reduce(required_fields, [], fn field, acc ->
+        if Map.has_key?(config, field) or Map.has_key?(config, String.to_existing_atom(field)) do
+          acc
+        else
+          ["Missing required field: #{field}" | acc]
+        end
+      end)
+
+    if errors == [] do
+      :ok
+    else
+      {:error, Enum.reverse(errors)}
+    end
+  end
+
+  defp validate_against_schema(_config, _schema) do
+    :ok
+  end
+end

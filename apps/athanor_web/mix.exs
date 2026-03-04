@@ -58,7 +58,8 @@ defmodule AthanorWeb.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:athanor, in_umbrella: true},
       {:jason, "~> 1.2"},
-      {:bandit, "~> 1.5"}
+      {:bandit, "~> 1.5"},
+      {:hermes_mcp, "~> 0.2"}
     ]
   end
 

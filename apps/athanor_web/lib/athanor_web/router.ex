@@ -14,6 +14,9 @@ defmodule AthanorWeb.Router do
     plug :accepts, ["json"]
   end
 
+  # MCP Server endpoint
+  forward "/mcp", Hermes.Server.Transport.StreamableHTTP.Plug, server: AthanorWeb.MCP.Server
+
   scope "/", AthanorWeb do
     pipe_through :browser
 
